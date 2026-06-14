@@ -1,0 +1,110 @@
+E-LEARNING PLATFORM — SETUP SUMMARY
+====================================
+Last updated: 2026-06-14
+
+PREREQUISITES
+- Node.js (v20+)
+- PostgreSQL (or Supabase free tier)
+- npm
+
+TECH STACK
+- Next.js 16 (App Router, webpack — Turbopack not supported on win32/x64)
+- Prisma 7 + PostgreSQL
+- Auth.js v5 (next-auth@beta, Credentials provider, JWT)
+- Tailwind CSS v4
+- shadcn/ui (Nova preset, 15 components)
+
+ENVIRONMENT (.env) — fill these 3 values:
+  DATABASE_URL   — Supabase Project Settings → Database → Connection string (URI)
+  AUTH_SECRET    — Run: node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
+  NVIDIA_API_KEY — https://build.nvidia.com/ → sign up → copy key
+
+SETUP (using Supabase SQL Editor)
+  1. Go to https://supabase.com/dashboard/project/nahrsxuftwrdpcldnurw
+  2. Open the SQL Editor
+  3. Open prisma/migration.sql → copy all → paste in SQL Editor → Run
+  4. Open prisma/seed.sql → copy all → paste in SQL Editor → Run
+  5. npm run dev -- --webpack
+
+DEMO USERS (after seeding)
+  Admin:       admin@example.com / demo1234
+  Instructor:  instructor@example.com / demo1234
+  Student:     student@example.com / demo1234
+
+PRISMA SCHEMA (17 models)
+  User, Account, Session, VerificationToken, Category, Course, Module,
+  Lesson, LessonCompletion, Enrollment, Quiz, QuizQuestion, QuizAnswerOption,
+  QuizAttempt, QuizUserAnswer, Certificate, Review, Discussion, Order, Notification
+
+ROUTES (19 total)
+  /                                         — Home
+  /auth/login                               — Login
+  /auth/register                            — Register
+  /auth/error                               — Auth error
+  /courses                                  — Course catalog
+  /courses/[slug]                           — Course detail (with enrollment)
+  /courses/[slug]/lessons/[lessonId]        — Lesson viewer (prev/next, complete)
+  /courses/[slug]/quizzes/[quizId]          — Quiz taking (auto-graded)
+  /dashboard                                — Student dashboard (enrolled courses)
+  /instructor                               — Instructor dashboard (stats)
+  /instructor/courses                       — Course management
+  /instructor/courses/new                   — Create course
+  /instructor/courses/[id]                  — Edit course (modules + lessons + quizzes)
+  /instructor/import                        — Import free courses (Khan Academy)
+  /admin                                    — Admin panel
+  /api/auth/[...nextauth]                   — Auth.js API
+  /api/auth/register                        — Registration API
+  /api/external-courses                     — Search external APIs
+  /api/external-courses/import              — Import external course
+
+ACTIONS (6 files)
+  src/actions/courses.ts       — create, update, delete, getInstructorCourses, getPublishedCourses, getCourseBySlug
+  src/actions/categories.ts    — getCategories, seedCategories
+  src/actions/modules.ts       — createModule, updateModule, deleteModule, reorderModules
+  src/actions/lessons.ts       — createLesson, updateLesson, deleteLesson
+  src/actions/enrollments.ts   — enrollInCourse, getStudentEnrollments, isEnrolled, getEnrolledCourseIds
+  src/actions/completions.ts   — markLessonComplete, getCompletedLessonIds
+  src/actions/quizzes.ts       — createQuiz, updateQuiz, deleteQuiz, addQuestion, removeQuestion, addOption, removeOption, submitQuizAttempt, getQuizAttempts
+
+WHAT WAS BUILT (2026-06-14)
+
+  Phase 1 — Foundation:
+  - Next.js 16 + TypeScript + Tailwind v4 + App Router + webpack
+  - Prisma 7 schema (17 models), PrismaClient with PrismaPg adapter
+  - Auth.js v5 (Credentials, JWT, role-based: STUDENT/INSTRUCTOR/ADMIN)
+  - shadcn/ui (15 components: button, input, label, card, dialog, dropdown-menu,
+    avatar, badge, select, separator, sheet, sonner, checkbox, textarea, radio-group)
+  - Role-based middleware (/dashboard, /instructor, /admin)
+  - Pages: Home, Login, Register
+
+  Phase 2 — Courses & Learning:
+  - Course CRUD with instructor management pages
+  - Module & lesson CRUD on edit course page
+  - Public course catalog with category filter chips + average rating display
+  - Course detail page with module/lesson outline + enrollment + review section
+  - Lesson viewer with prev/next nav, video playback, completion tracking
+  - Student enrollment (free courses) with auto-progress tracking
+  - Student dashboard with enrolled courses + progress bars
+  - Quiz engine: instructors create quizzes with MC/TF/SA questions + options
+  - Auto-grading on submission, results page with score %
+  - Previous attempt history shown on quiz page
+  - Reviews & ratings: students rate 1-5 stars with optional comment
+  - Upsert reviews (one per student), auto-updates course rating
+  - AI Tutor powered by NVIDIA NIM (Llama 3.1 8B) with RAG on course content
+  - Slide-out chat panel on lesson viewer page
+  - Free course import from Khan Academy API
+  - Instructor sidebar layout (Overview, My Courses, Import)
+  - Seed script: 20 categories + 3 demo users
+  - Instructor dashboard with stats (courses, students, revenue)
+  - Supabase-ready DATABASE_URL placeholder
+
+NEXT STEPS
+  1. Create Supabase project → update DATABASE_URL in .env
+  2. npm run db:migrate
+  3. npm run dev
+  4. Discussions / Q&A per lesson
+  5. Certificates on course completion
+  6. Video upload (Cloudflare Stream / Mux)
+  7. Payments (Stripe) — simple setup
+  8. Live classes (WebRTC)
+  9. Live classes (WebRTC)
