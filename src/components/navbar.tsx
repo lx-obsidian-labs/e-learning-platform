@@ -14,8 +14,14 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { createClient } from "@/lib/supabase/client"
-import { getUserProfile } from "@/actions/auth"
 import { Sun, Moon, Menu, X } from "lucide-react"
+
+export type NavbarUser = {
+  id: string
+  name: string
+  email?: string
+  role: string
+}
 
 const navLinks = [
   { href: "/", label: "Home" },
@@ -25,14 +31,14 @@ const navLinks = [
   { href: "/contact", label: "Contact" },
 ]
 
-export function Navbar() {
+export function Navbar({ initialUser }: { initialUser?: NavbarUser | null }) {
   const pathname = usePathname()
   const router = useRouter()
   const { theme, setTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
-  const [user, setUser] = useState<{ id: string; name?: string; email?: string; role?: string } | null>(null)
-  const [loading, setLoading] = useState(true)
+  const [user, setUser] = useState<NavbarUser | null>(initialUser ?? null)
+  const [loading, setLoading] = useState(!initialUser)
 
   const isAuthPage = pathname.startsWith("/auth/")
   const isAdmin = pathname.startsWith("/admin")
@@ -41,21 +47,23 @@ export function Navbar() {
   useEffect(() => {
     setMounted(true)
 
-    ;(async () => {
-      const profile = await getUserProfile()
-      if (profile) {
-        setUser(profile)
-      }
+    if (initialUser) {
       setLoading(false)
-    })()
+      return
+    }
 
     const supabase = createClient()
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED") {
         if (session?.user) {
-          const profile = await getUserProfile()
-          if (profile) setUser(profile)
+          setUser({
+            id: session.user.id,
+            email: session.user.email ?? undefined,
+            name: session.user.email?.split("@")[0] || "User",
+            role: "STUDENT",
+          })
         }
+        setLoading(false)
       } else if (event === "SIGNED_OUT") {
         setUser(null)
         setLoading(false)

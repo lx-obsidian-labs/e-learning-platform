@@ -2,8 +2,10 @@ import type { Metadata } from "next"
 import { Geist, Geist_Mono } from "next/font/google"
 import "./globals.css"
 import { Providers } from "./providers"
-import { Navbar } from "@/components/navbar"
+import { Navbar, type NavbarUser } from "@/components/navbar"
 import { Footer } from "@/components/footer"
+import { createClient } from "@/lib/supabase/server"
+import { createAdminClient } from "@/lib/supabase/admin"
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -26,9 +28,31 @@ export const metadata: Metadata = {
   },
 }
 
-export default function RootLayout({
+async function getInitialUser(): Promise<NavbarUser | null> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return null
+
+  const admin = createAdminClient()
+  const { data: profile } = await admin
+    .from("users")
+    .select("name, role")
+    .eq('"id"', user.id)
+    .maybeSingle()
+
+  return {
+    id: user.id,
+    email: user.email ?? undefined,
+    name: profile?.name || user.email?.split("@")[0] || "User",
+    role: profile?.role || "STUDENT",
+  }
+}
+
+export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
+  const initialUser = await getInitialUser()
+
   return (
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`} suppressHydrationWarning>
       <body className="min-h-screen bg-background antialiased">
@@ -38,7 +62,7 @@ export default function RootLayout({
               <div className="ambient-orb ambient-orb-1" />
               <div className="ambient-orb ambient-orb-2" />
             </div>
-            <Navbar />
+            <Navbar initialUser={initialUser} />
             <main>{children}</main>
             <Footer />
           </div>
