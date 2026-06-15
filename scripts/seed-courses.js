@@ -59,9 +59,9 @@ const FREE_COURSES = [
     description: "Learn HTML, CSS, and JavaScript fundamentals. Build responsive websites from scratch with modern web technologies.",
     category: "Web Development",
     lessons: [
-      { title: "HTML Basics", videoUrl: "https://www.youtube.com/embed/mJgBOIoGihA", content: "HTML (HyperText Markup Language) is the standard markup language for documents designed to be displayed in a web browser. It defines the structure of web content using elements like headings, paragraphs, links, and images." },
-      { title: "CSS Fundamentals", videoUrl: "https://www.youtube.com/embed/OXGznpKZ_sA", content: "CSS (Cascading Style Sheets) is a style sheet language used for describing the presentation of a document written in HTML. It controls layout, colors, fonts, and responsive design." },
-      { title: "JavaScript Essentials", videoUrl: "https://www.youtube.com/embed/PkZNo7MFNFg", content: "JavaScript is a high-level, interpreted programming language that enables interactive web pages. Learn variables, functions, DOM manipulation, and event handling." },
+      { title: "HTML Basics", videoUrl: "https://www.youtube.com/embed/ok-plXXHlWw", content: "HTML (HyperText Markup Language) is the standard markup language for documents designed to be displayed in a web browser. It defines the structure of web content using elements like headings, paragraphs, links, and images." },
+      { title: "CSS Fundamentals", videoUrl: "https://www.youtube.com/embed/yfoY53QXEnI", content: "CSS (Cascading Style Sheets) is a style sheet language used for describing the presentation of a document written in HTML. It controls layout, colors, fonts, and responsive design." },
+      { title: "JavaScript Essentials", videoUrl: "https://www.youtube.com/embed/W6NZfCO5SIk", content: "JavaScript is a high-level, interpreted programming language that enables interactive web pages. Learn variables, functions, DOM manipulation, and event handling." },
     ]
   },
   {
@@ -69,10 +69,10 @@ const FREE_COURSES = [
     description: "Master Python programming from the ground up. Covers data types, control flow, functions, object-oriented programming, and file handling.",
     category: "Programming",
     lessons: [
-      { title: "Getting Started with Python", videoUrl: "https://www.youtube.com/embed/rfscVS0vtbw", content: "Python is an interpreted, high-level, general-purpose programming language. Its design philosophy emphasizes code readability with its notable use of significant indentation." },
-      { title: "Data Structures", videoUrl: "https://www.youtube.com/embed/pMGY-RVi1Fc", content: "Learn about Python's built-in data structures: lists, tuples, dictionaries, and sets. Understand when to use each and their performance characteristics." },
-      { title: "Functions and Modules", videoUrl: "https://www.youtube.com/embed/N4BcB8M9HqA", content: "Functions are reusable blocks of code that perform specific tasks. Modules allow you to organize code into separate files and namespaces." },
-      { title: "Object-Oriented Programming", videoUrl: "https://www.youtube.com/embed/8yjkWGRlUmY", content: "OOP is a programming paradigm based on the concept of objects containing data and methods. Learn classes, inheritance, polymorphism, and encapsulation." },
+      { title: "Getting Started with Python", videoUrl: "https://www.youtube.com/embed/kqtD5dpn9C8", content: "Python is an interpreted, high-level, general-purpose programming language. Its design philosophy emphasizes code readability with its notable use of significant indentation." },
+      { title: "Data Structures", videoUrl: "https://www.youtube.com/embed/R-HLU9Fl5ug", content: "Learn about Python's built-in data structures: lists, tuples, dictionaries, and sets. Understand when to use each and their performance characteristics." },
+      { title: "Functions and Modules", videoUrl: "https://www.youtube.com/embed/aeqzgzXAMbI", content: "Functions are reusable blocks of code that perform specific tasks. Modules allow you to organize code into separate files and namespaces." },
+      { title: "Object-Oriented Programming", videoUrl: "https://www.youtube.com/embed/Ej_02ICOIgs", content: "OOP is a programming paradigm based on the concept of objects containing data and methods. Learn classes, inheritance, polymorphism, and encapsulation." },
     ]
   },
   {
@@ -80,7 +80,7 @@ const FREE_COURSES = [
     description: "Explore data analysis, visualization, and machine learning concepts using Python. Perfect for beginners entering the data science field.",
     category: "Data Science",
     lessons: [
-      { title: "What is Data Science?", videoUrl: "https://www.youtube.com/embed/xC-c7E5PK0Y", content: "Data science combines statistics, computer science, and domain expertise to extract insights from data. It involves collecting, cleaning, analyzing, and interpreting data." },
+      { title: "What is Data Science?", videoUrl: "https://www.youtube.com/embed/X3paOmcrTjQ", content: "Data science combines statistics, computer science, and domain expertise to extract insights from data. It involves collecting, cleaning, analyzing, and interpreting data." },
       { title: "Data Analysis with Pandas", videoUrl: "https://www.youtube.com/embed/vmEHCJofslg", content: "Pandas is a powerful Python library for data manipulation and analysis. It provides data structures like DataFrames for handling structured data." },
       { title: "Data Visualization", videoUrl: "https://www.youtube.com/embed/MPu5EOS0iig", content: "Visualization helps communicate insights effectively. Learn matplotlib, seaborn, and plotly for creating compelling charts and graphs." },
     ]
@@ -90,7 +90,7 @@ const FREE_COURSES = [
     description: "Understand machine learning algorithms, supervised and unsupervised learning, neural networks, and practical model building with scikit-learn.",
     category: "Machine Learning",
     lessons: [
-      { title: "Introduction to ML", videoUrl: "https://www.youtube.com/embed/gmvvaobm7eQ", content: "Machine learning is a subset of AI that enables systems to learn from data without explicit programming. Learn about supervised, unsupervised, and reinforcement learning." },
+      { title: "Introduction to ML", videoUrl: "https://www.youtube.com/embed/ukzFI9rgwfU", content: "Machine learning is a subset of AI that enables systems to learn from data without explicit programming. Learn about supervised, unsupervised, and reinforcement learning." },
       { title: "Supervised Learning", videoUrl: "https://www.youtube.com/embed/XtjaoXh9Dd4", content: "Supervised learning uses labeled data to train models. Cover regression, classification, decision trees, random forests, and support vector machines." },
       { title: "Unsupervised Learning", videoUrl: "https://www.youtube.com/embed/JnnaDNNb380", content: "Unsupervised learning finds patterns in unlabeled data. Learn clustering, dimensionality reduction, and association rule mining." },
     ]
@@ -120,9 +120,9 @@ const FREE_COURSES = [
     description: "Learn cloud fundamentals, AWS services, deployment models, and cloud architecture. Prepare for cloud computing certification.",
     category: "Cloud Computing",
     lessons: [
-      { title: "Cloud Fundamentals", videoUrl: "https://www.youtube.com/embed/eZLcyTxi8ZI", content: "Cloud computing delivers computing services over the internet. Learn IaaS, PaaS, SaaS models, and the benefits of scalability, reliability, and cost efficiency." },
+      { title: "Cloud Fundamentals", videoUrl: "https://www.youtube.com/embed/2LaAJq1lB1Q", content: "Cloud computing delivers computing services over the internet. Learn IaaS, PaaS, SaaS models, and the benefits of scalability, reliability, and cost efficiency." },
       { title: "AWS Core Services", videoUrl: "https://www.youtube.com/embed/3hLmDSM8jFw", content: "Explore Amazon Web Services including EC2, S3, RDS, Lambda, and Route 53. Understand how these services power modern applications." },
-      { title: "Cloud Architecture", videoUrl: "https://www.youtube.com/embed/ucJ3-9kTX0g", content: "Design scalable, fault-tolerant cloud architectures. Learn about load balancing, auto-scaling, disaster recovery, and the Well-Architected Framework." },
+      { title: "Cloud Architecture", videoUrl: "https://www.youtube.com/embed/9gmVg4LhFEM", content: "Design scalable, fault-tolerant cloud architectures. Learn about load balancing, auto-scaling, disaster recovery, and the Well-Architected Framework." },
     ]
   },
   {
@@ -140,9 +140,9 @@ const FREE_COURSES = [
     description: "Learn relational database design, SQL queries, normalization, indexing, and performance optimization. Essential for any developer.",
     category: "Database Design",
     lessons: [
-      { title: "Relational Database Concepts", videoUrl: "https://www.youtube.com/embed/D6QCfEwYyqE", content: "Relational databases store data in tables with rows and columns. Learn about primary keys, foreign keys, and entity-relationship modeling." },
+      { title: "Relational Database Concepts", videoUrl: "https://www.youtube.com/embed/OqjfJx6h27A", content: "Relational databases store data in tables with rows and columns. Learn about primary keys, foreign keys, and entity-relationship modeling." },
       { title: "SQL Queries", videoUrl: "https://www.youtube.com/embed/7S_tz1z_5bA", content: "SQL is the standard language for querying databases. Master SELECT, JOIN, GROUP BY, subqueries, and window functions." },
-      { title: "Normalization & Indexing", videoUrl: "https://www.youtube.com/embed/5KdD4hbB1QY", content: "Normalization reduces data redundancy. Indexing improves query performance. Learn about normal forms and B-tree indexes." },
+      { title: "Normalization & Indexing", videoUrl: "https://www.youtube.com/embed/GFQa2lTjTDM", content: "Normalization reduces data redundancy. Indexing improves query performance. Learn about normal forms and B-tree indexes." },
     ]
   },
   {
@@ -150,7 +150,7 @@ const FREE_COURSES = [
     description: "Learn business fundamentals, business model canvas, marketing strategies, financial planning, and startup essentials.",
     category: "Business",
     lessons: [
-      { title: "Business Models", videoUrl: "https://www.youtube.com/embed/-o0M2wDJqSI", content: "A business model describes how an organization creates, delivers, and captures value. Learn the Business Model Canvas and value proposition design." },
+      { title: "Business Models", videoUrl: "https://www.youtube.com/embed/2dmKM8Pgh0E", content: "A business model describes how an organization creates, delivers, and captures value. Learn the Business Model Canvas and value proposition design." },
       { title: "Marketing Fundamentals", videoUrl: "https://www.youtube.com/embed/bFmbdc2d5JQ", content: "Marketing involves promoting products to target audiences. Learn the 4 Ps, digital marketing, SEO, content marketing, and social media strategy." },
       { title: "Financial Planning", videoUrl: "https://www.youtube.com/embed/wZTOUZP-xkg", content: "Financial planning ensures business sustainability. Cover budgeting, cash flow management, financial statements, and fundraising basics." },
     ]
