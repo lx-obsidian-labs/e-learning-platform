@@ -86,6 +86,9 @@ export default async function CourseDetailPage({
 
   const enrolled = enrolledCourseIds.includes(course.id)
   const totalLessons = (modules || []).reduce((sum: number, m: any) => sum + (m.lessons?.length || 0), 0)
+  const moduleVideoCount = (modules || []).reduce((sum: number, m: any) =>
+    sum + (m.lessons || []).filter((l: any) => l.videoUrl).length,
+  0)
   const completedCount = (modules || []).reduce((sum: number, m: any) =>
     sum + (m.lessons || []).filter((l: any) => completedLessonIds.includes(l.id)).length,
   0)
@@ -150,6 +153,14 @@ export default async function CourseDetailPage({
               </svg>
               {totalLessons} lessons
             </span>
+            {moduleVideoCount > 0 && (
+              <span className="flex items-center gap-1">
+                <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M8 5v14l11-7z" />
+                </svg>
+                {moduleVideoCount} video
+              </span>
+            )}
             {course.rating > 0 && (
               <span className="flex items-center gap-1">
                 <span>★</span>
@@ -165,11 +176,21 @@ export default async function CourseDetailPage({
           <Card>
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle>Course Content</CardTitle>
-              {enrolled && completedCount > 0 && (
-                <span className="text-sm text-muted-foreground">
-                  {completedCount}/{totalLessons} completed
-                </span>
-              )}
+              <div className="flex items-center gap-3 text-xs">
+                {moduleVideoCount > 0 && (
+                  <span className="flex items-center gap-1 text-muted-foreground">
+                    <svg className="h-3.5 w-3.5" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M8 5v14l11-7z" />
+                    </svg>
+                    {moduleVideoCount} video{moduleVideoCount !== 1 ? "s" : ""}
+                  </span>
+                )}
+                {enrolled && completedCount > 0 && (
+                  <span className="text-muted-foreground">
+                    {completedCount}/{totalLessons} completed
+                  </span>
+                )}
+              </div>
             </CardHeader>
             <CardContent className="space-y-4">
               {enrolled && totalLessons > 0 && (
@@ -241,6 +262,11 @@ export default async function CourseDetailPage({
                                     {lesson.title}
                                   </span>
                                   <div className="flex items-center gap-2">
+                                    {lesson.videoUrl && (
+                                      <svg className="h-3.5 w-3.5 text-primary/60" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M8 5v14l11-7z" />
+                                      </svg>
+                                    )}
                                     {lesson.isPreviewable && (
                                       <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
                                         Preview

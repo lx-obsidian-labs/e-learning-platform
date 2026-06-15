@@ -59,9 +59,9 @@ const FREE_COURSES = [
     description: "Learn HTML, CSS, and JavaScript fundamentals. Build responsive websites from scratch with modern web technologies.",
     category: "Web Development",
     lessons: [
-      { title: "HTML Basics", content: "HTML (HyperText Markup Language) is the standard markup language for documents designed to be displayed in a web browser. It defines the structure of web content using elements like headings, paragraphs, links, and images." },
-      { title: "CSS Fundamentals", content: "CSS (Cascading Style Sheets) is a style sheet language used for describing the presentation of a document written in HTML. It controls layout, colors, fonts, and responsive design." },
-      { title: "JavaScript Essentials", content: "JavaScript is a high-level, interpreted programming language that enables interactive web pages. Learn variables, functions, DOM manipulation, and event handling." },
+      { title: "HTML Basics", videoUrl: "https://www.youtube.com/watch?v=qz0aGYrrlhU", content: "HTML (HyperText Markup Language) is the standard markup language for documents designed to be displayed in a web browser. It defines the structure of web content using elements like headings, paragraphs, links, and images." },
+      { title: "CSS Fundamentals", videoUrl: "https://www.youtube.com/watch?v=1Rs2ND1ryYc", content: "CSS (Cascading Style Sheets) is a style sheet language used for describing the presentation of a document written in HTML. It controls layout, colors, fonts, and responsive design." },
+      { title: "JavaScript Essentials", videoUrl: "https://www.youtube.com/watch?v=W6NZfCO5SIk", content: "JavaScript is a high-level, interpreted programming language that enables interactive web pages. Learn variables, functions, DOM manipulation, and event handling." },
     ]
   },
   {
@@ -69,10 +69,10 @@ const FREE_COURSES = [
     description: "Master Python programming from the ground up. Covers data types, control flow, functions, object-oriented programming, and file handling.",
     category: "Programming",
     lessons: [
-      { title: "Getting Started with Python", content: "Python is an interpreted, high-level, general-purpose programming language. Its design philosophy emphasizes code readability with its notable use of significant indentation." },
-      { title: "Data Structures", content: "Learn about Python's built-in data structures: lists, tuples, dictionaries, and sets. Understand when to use each and their performance characteristics." },
-      { title: "Functions and Modules", content: "Functions are reusable blocks of code that perform specific tasks. Modules allow you to organize code into separate files and namespaces." },
-      { title: "Object-Oriented Programming", content: "OOP is a programming paradigm based on the concept of objects containing data and methods. Learn classes, inheritance, polymorphism, and encapsulation." },
+      { title: "Getting Started with Python", videoUrl: "https://www.youtube.com/watch?v=kqtD5dpn9C8", content: "Python is an interpreted, high-level, general-purpose programming language. Its design philosophy emphasizes code readability with its notable use of significant indentation." },
+      { title: "Data Structures", videoUrl: "https://www.youtube.com/watch?v=R-HLU9Fl5ug", content: "Learn about Python's built-in data structures: lists, tuples, dictionaries, and sets. Understand when to use each and their performance characteristics." },
+      { title: "Functions and Modules", videoUrl: "https://www.youtube.com/watch?v=9Os0Q3Qn3Vs", content: "Functions are reusable blocks of code that perform specific tasks. Modules allow you to organize code into separate files and namespaces." },
+      { title: "Object-Oriented Programming", videoUrl: "https://www.youtube.com/watch?v=Ej_02ICOIgs", content: "OOP is a programming paradigm based on the concept of objects containing data and methods. Learn classes, inheritance, polymorphism, and encapsulation." },
     ]
   },
   {
@@ -80,9 +80,9 @@ const FREE_COURSES = [
     description: "Explore data analysis, visualization, and machine learning concepts using Python. Perfect for beginners entering the data science field.",
     category: "Data Science",
     lessons: [
-      { title: "What is Data Science?", content: "Data science combines statistics, computer science, and domain expertise to extract insights from data. It involves collecting, cleaning, analyzing, and interpreting data." },
-      { title: "Data Analysis with Pandas", content: "Pandas is a powerful Python library for data manipulation and analysis. It provides data structures like DataFrames for handling structured data." },
-      { title: "Data Visualization", content: "Visualization helps communicate insights effectively. Learn matplotlib, seaborn, and plotly for creating compelling charts and graphs." },
+      { title: "What is Data Science?", videoUrl: "https://www.youtube.com/watch?v=X3paOmcrTjQ", content: "Data science combines statistics, computer science, and domain expertise to extract insights from data. It involves collecting, cleaning, analyzing, and interpreting data." },
+      { title: "Data Analysis with Pandas", videoUrl: "https://www.youtube.com/watch?v=vmEHCJofslg", content: "Pandas is a powerful Python library for data manipulation and analysis. It provides data structures like DataFrames for handling structured data." },
+      { title: "Data Visualization", videoUrl: "https://www.youtube.com/watch?v=MPu5EOS0iig", content: "Visualization helps communicate insights effectively. Learn matplotlib, seaborn, and plotly for creating compelling charts and graphs." },
     ]
   },
   {
@@ -90,9 +90,9 @@ const FREE_COURSES = [
     description: "Understand machine learning algorithms, supervised and unsupervised learning, neural networks, and practical model building with scikit-learn.",
     category: "Machine Learning",
     lessons: [
-      { title: "Introduction to ML", content: "Machine learning is a subset of AI that enables systems to learn from data without explicit programming. Learn about supervised, unsupervised, and reinforcement learning." },
-      { title: "Supervised Learning", content: "Supervised learning uses labeled data to train models. Cover regression, classification, decision trees, random forests, and support vector machines." },
-      { title: "Unsupervised Learning", content: "Unsupervised learning finds patterns in unlabeled data. Learn clustering, dimensionality reduction, and association rule mining." },
+      { title: "Introduction to ML", videoUrl: "https://www.youtube.com/watch?v=ukzFI9rgwfU", content: "Machine learning is a subset of AI that enables systems to learn from data without explicit programming. Learn about supervised, unsupervised, and reinforcement learning." },
+      { title: "Supervised Learning", videoUrl: "https://www.youtube.com/watch?v=XtjaoXh9Dd4", content: "Supervised learning uses labeled data to train models. Cover regression, classification, decision trees, random forests, and support vector machines." },
+      { title: "Unsupervised Learning", videoUrl: "https://www.youtube.com/watch?v=JnnaDNNb380", content: "Unsupervised learning finds patterns in unlabeled data. Learn clustering, dimensionality reduction, and association rule mining." },
     ]
   },
   {
@@ -100,9 +100,9 @@ const FREE_COURSES = [
     description: "Master user interface and user experience design. Learn design thinking, wireframing, prototyping, and usability testing.",
     category: "UI/UX Design",
     lessons: [
-      { title: "Design Thinking", content: "Design thinking is a human-centered approach to innovation. It involves five phases: empathize, define, ideate, prototype, and test." },
-      { title: "Wireframing & Prototyping", content: "Wireframes are low-fidelity layouts that define structure and hierarchy. Prototypes add interactivity for user testing and stakeholder feedback." },
-      { title: "Usability Principles", content: "Learn Nielsen's 10 usability heuristics: visibility, consistency, error prevention, recognition rather than recall, and user control." },
+      { title: "Design Thinking", videoUrl: "https://www.youtube.com/watch?v=gHGN6hs2gZY", content: "Design thinking is a human-centered approach to innovation. It involves five phases: empathize, define, ideate, prototype, and test." },
+      { title: "Wireframing & Prototyping", videoUrl: "https://www.youtube.com/watch?v=4WnL1S1rB3o", content: "Wireframes are low-fidelity layouts that define structure and hierarchy. Prototypes add interactivity for user testing and stakeholder feedback." },
+      { title: "Usability Principles", videoUrl: "https://www.youtube.com/watch?v=QhA3PwMcUPY", content: "Learn Nielsen's 10 usability heuristics: visibility, consistency, error prevention, recognition rather than recall, and user control." },
     ]
   },
   {
@@ -110,9 +110,9 @@ const FREE_COURSES = [
     description: "Learn network security, cryptography, threat detection, and security best practices. Essential knowledge for protecting digital assets.",
     category: "Cybersecurity",
     lessons: [
-      { title: "Network Security", content: "Network security protects data during transmission. Learn about firewalls, VPNs, intrusion detection systems, and secure network protocols." },
-      { title: "Cryptography", content: "Cryptography secures information through encryption. Understand symmetric/asymmetric encryption, hashing, digital signatures, and PKI." },
-      { title: "Threat Detection", content: "Identify and respond to security threats. Learn about malware analysis, SIEM tools, incident response, and penetration testing methodology." },
+      { title: "Network Security", videoUrl: "https://www.youtube.com/watch?v=ZtkfDA7X0BA", content: "Network security protects data during transmission. Learn about firewalls, VPNs, intrusion detection systems, and secure network protocols." },
+      { title: "Cryptography", videoUrl: "https://www.youtube.com/watch?v=6_Cxj5WKpIw", content: "Cryptography secures information through encryption. Understand symmetric/asymmetric encryption, hashing, digital signatures, and PKI." },
+      { title: "Threat Detection", videoUrl: "https://www.youtube.com/watch?v=O5R-2QP-V84", content: "Identify and respond to security threats. Learn about malware analysis, SIEM tools, incident response, and penetration testing methodology." },
     ]
   },
   {
@@ -120,9 +120,9 @@ const FREE_COURSES = [
     description: "Learn cloud fundamentals, AWS services, deployment models, and cloud architecture. Prepare for cloud computing certification.",
     category: "Cloud Computing",
     lessons: [
-      { title: "Cloud Fundamentals", content: "Cloud computing delivers computing services over the internet. Learn IaaS, PaaS, SaaS models, and the benefits of scalability, reliability, and cost efficiency." },
-      { title: "AWS Core Services", content: "Explore Amazon Web Services including EC2, S3, RDS, Lambda, and Route 53. Understand how these services power modern applications." },
-      { title: "Cloud Architecture", content: "Design scalable, fault-tolerant cloud architectures. Learn about load balancing, auto-scaling, disaster recovery, and the Well-Architected Framework." },
+      { title: "Cloud Fundamentals", videoUrl: "https://www.youtube.com/watch?v=2LaAJq1lB1Q", content: "Cloud computing delivers computing services over the internet. Learn IaaS, PaaS, SaaS models, and the benefits of scalability, reliability, and cost efficiency." },
+      { title: "AWS Core Services", videoUrl: "https://www.youtube.com/watch?v=3hLmDSM8jFw", content: "Explore Amazon Web Services including EC2, S3, RDS, Lambda, and Route 53. Understand how these services power modern applications." },
+      { title: "Cloud Architecture", videoUrl: "https://www.youtube.com/watch?v=ucJ3-9kTX0g", content: "Design scalable, fault-tolerant cloud architectures. Learn about load balancing, auto-scaling, disaster recovery, and the Well-Architected Framework." },
     ]
   },
   {
@@ -130,9 +130,9 @@ const FREE_COURSES = [
     description: "Build cross-platform mobile apps using React Native. Learn components, navigation, state management, and deployment for iOS and Android.",
     category: "Mobile Development",
     lessons: [
-      { title: "React Native Basics", content: "React Native lets you build mobile apps using JavaScript and React. It compiles to native components for iOS and Android platforms." },
-      { title: "Navigation & Routing", content: "Implement navigation patterns using React Navigation. Learn stack, tab, and drawer navigators for seamless app flow." },
-      { title: "State Management", content: "Manage app state effectively using Context API, Redux, or Zustand. Understand when to use local vs global state." },
+      { title: "React Native Basics", videoUrl: "https://www.youtube.com/watch?v=0-S5a0eXPoc", content: "React Native lets you build mobile apps using JavaScript and React. It compiles to native components for iOS and Android platforms." },
+      { title: "Navigation & Routing", videoUrl: "https://www.youtube.com/watch?v=EbQ2U3YJvk8", content: "Implement navigation patterns using React Navigation. Learn stack, tab, and drawer navigators for seamless app flow." },
+      { title: "State Management", videoUrl: "https://www.youtube.com/watch?v=5pvoa7dC2bM", content: "Manage app state effectively using Context API, Redux, or Zustand. Understand when to use local vs global state." },
     ]
   },
   {
@@ -140,9 +140,9 @@ const FREE_COURSES = [
     description: "Learn relational database design, SQL queries, normalization, indexing, and performance optimization. Essential for any developer.",
     category: "Database Design",
     lessons: [
-      { title: "Relational Database Concepts", content: "Relational databases store data in tables with rows and columns. Learn about primary keys, foreign keys, and entity-relationship modeling." },
-      { title: "SQL Queries", content: "SQL is the standard language for querying databases. Master SELECT, JOIN, GROUP BY, subqueries, and window functions." },
-      { title: "Normalization & Indexing", content: "Normalization reduces data redundancy. Indexing improves query performance. Learn about normal forms and B-tree indexes." },
+      { title: "Relational Database Concepts", videoUrl: "https://www.youtube.com/watch?v=OqjfJx6h27A", content: "Relational databases store data in tables with rows and columns. Learn about primary keys, foreign keys, and entity-relationship modeling." },
+      { title: "SQL Queries", videoUrl: "https://www.youtube.com/watch?v=7S_tz1z_5bA", content: "SQL is the standard language for querying databases. Master SELECT, JOIN, GROUP BY, subqueries, and window functions." },
+      { title: "Normalization & Indexing", videoUrl: "https://www.youtube.com/watch?v=GFQa2lTjTDM", content: "Normalization reduces data redundancy. Indexing improves query performance. Learn about normal forms and B-tree indexes." },
     ]
   },
   {
@@ -150,9 +150,9 @@ const FREE_COURSES = [
     description: "Learn business fundamentals, business model canvas, marketing strategies, financial planning, and startup essentials.",
     category: "Business",
     lessons: [
-      { title: "Business Models", content: "A business model describes how an organization creates, delivers, and captures value. Learn the Business Model Canvas and value proposition design." },
-      { title: "Marketing Fundamentals", content: "Marketing involves promoting products to target audiences. Learn the 4 Ps, digital marketing, SEO, content marketing, and social media strategy." },
-      { title: "Financial Planning", content: "Financial planning ensures business sustainability. Cover budgeting, cash flow management, financial statements, and fundraising basics." },
+      { title: "Business Models", videoUrl: "https://www.youtube.com/watch?v=2dmKM8Pgh0E", content: "A business model describes how an organization creates, delivers, and captures value. Learn the Business Model Canvas and value proposition design." },
+      { title: "Marketing Fundamentals", videoUrl: "https://www.youtube.com/watch?v=bFmbdc2d5JQ", content: "Marketing involves promoting products to target audiences. Learn the 4 Ps, digital marketing, SEO, content marketing, and social media strategy." },
+      { title: "Financial Planning", videoUrl: "https://www.youtube.com/watch?v=D1vi1MSFJxM", content: "Financial planning ensures business sustainability. Cover budgeting, cash flow management, financial statements, and fundraising basics." },
     ]
   },
 ]
@@ -197,6 +197,7 @@ async function main() {
           id: randomUUID(),
           title: course.lessons[i].title,
           content: course.lessons[i].content,
+          videoUrl: course.lessons[i].videoUrl || null,
           order: i + 1, moduleId: mod.id,
           updatedAt: now,
         })

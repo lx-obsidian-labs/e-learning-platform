@@ -13,6 +13,21 @@ import Link from "next/link"
 
 export const dynamic = "force-dynamic"
 
+function getYouTubeEmbedUrl(url: string): string | null {
+  const match = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]+)/)
+  return match ? `https://www.youtube.com/embed/${match[1]}?autoplay=1&rel=0` : null
+}
+
+function getVimeoEmbedUrl(url: string): string | null {
+  const match = url.match(/vimeo\.com\/(\d+)/)
+  return match ? `https://player.vimeo.com/video/${match[1]}?autoplay=1` : null
+}
+
+function getYouTubeVideoId(url: string): string | null {
+  const match = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]+)/)
+  return match ? match[1] : null
+}
+
 export default async function LessonPage({
   params,
 }: {
@@ -28,7 +43,7 @@ export default async function LessonPage({
 
   const { data: lesson } = await admin
     .from('lessons')
-    .select('*, module:modules(*, course:courses(*), lessons:lessons(id, title, "order"))')
+    .select('*, module:modules(*, course:courses(*), lessons:lessons(id, title, "order", videoUrl, duration))')
     .eq('"id"', lessonId)
     .single()
 
@@ -60,19 +75,17 @@ export default async function LessonPage({
       ? moduleLessons[currentIndex + 1]
       : null
 
-  const getYouTubeEmbedUrl = (url: string) => {
-    const match = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]+)/)
-    return match ? `https://www.youtube.com/embed/${match[1]}?autoplay=1` : null
-  }
-
-  const getVimeoEmbedUrl = (url: string) => {
-    const match = url.match(/vimeo\.com\/(\d+)/)
-    return match ? `https://player.vimeo.com/video/${match[1]}?autoplay=1` : null
-  }
-
   const embedUrl = lesson.videoUrl
     ? getYouTubeEmbedUrl(lesson.videoUrl) || getVimeoEmbedUrl(lesson.videoUrl) || null
     : null
+
+  const rawVideoUrl = lesson.videoUrl && !embedUrl ? lesson.videoUrl : null
+
+  const videoId = lesson.videoUrl ? getYouTubeVideoId(lesson.videoUrl) : null
+  const videoThumbnail = videoId ? `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg` : null
+
+  const lessonsWithVideo = moduleLessons.filter((l: any) => l.videoUrl).length
+  const videoCount = moduleLessons.length
 
   return (
     <div className="max-w-5xl mx-auto space-y-6">
@@ -94,13 +107,21 @@ export default async function LessonPage({
             {lesson.description && (
               <p className="text-muted-foreground mt-1">{lesson.description}</p>
             )}
-            <div className="flex items-center gap-3 mt-2 text-sm text-muted-foreground">
+            <div className="flex items-center gap-3 mt-2 text-sm text-muted-foreground flex-wrap">
               {lesson.duration && (
                 <span className="flex items-center gap-1">
                   <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                   {lesson.duration} minutes
+                </span>
+              )}
+              {lesson.videoUrl && (
+                <span className="flex items-center gap-1 text-primary">
+                  <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M8 5v14l11-7z" />
+                  </svg>
+                  Video
                 </span>
               )}
               {lesson.isPreviewable && <Badge variant="outline">Preview</Badge>}
@@ -115,25 +136,41 @@ export default async function LessonPage({
             </div>
           </div>
 
-          {lesson.videoUrl && embedUrl && (
-            <div className="aspect-video rounded-xl bg-black overflow-hidden shadow-lg">
+          {embedUrl && (
+            <div className="aspect-video rounded-xl bg-black overflow-hidden shadow-lg relative group">
               <iframe
                 src={embedUrl}
                 className="w-full h-full"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowFullScreen
               />
+              <div className="absolute bottom-3 left-3 bg-black/60 text-white text-xs px-2 py-1 rounded backdrop-blur-sm">
+                {lesson.duration || ""} min
+              </div>
             </div>
           )}
 
-          {lesson.videoUrl && !embedUrl && (
-            <div className="aspect-video rounded-xl bg-black overflow-hidden shadow-lg">
+          {rawVideoUrl && (
+            <div className="aspect-video rounded-xl bg-black overflow-hidden shadow-lg relative">
               <video
-                src={lesson.videoUrl}
+                src={rawVideoUrl}
                 controls
                 className="w-full h-full object-contain"
-                poster={undefined}
+                poster={videoThumbnail || undefined}
               />
+            </div>
+          )}
+
+          {!lesson.videoUrl && (
+            <div className="aspect-video rounded-xl bg-gradient-to-br from-muted to-muted/50 flex items-center justify-center relative overflow-hidden border">
+              <div className="text-center space-y-3 p-8">
+                <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
+                  <svg className="h-8 w-8 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.348a1.125 1.125 0 010 1.971l-11.54 6.347a1.125 1.125 0 01-1.667-.985V5.653z" />
+                  </svg>
+                </div>
+                <p className="text-muted-foreground text-sm">Video lesson</p>
+              </div>
             </div>
           )}
 
@@ -192,6 +229,9 @@ export default async function LessonPage({
                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />
                 </svg>
                 Course Content
+                <Badge variant="secondary" className="text-[10px] ml-auto">
+                  {lessonsWithVideo}/{videoCount} video
+                </Badge>
               </h2>
             </div>
             <div className="divide-y max-h-[60vh] overflow-y-auto">
@@ -220,6 +260,16 @@ export default async function LessonPage({
                       )}
                     </div>
                     <span className="flex-1 truncate">{l.title}</span>
+                    {l.videoUrl && (
+                      <svg className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M8 5v14l11-7z" />
+                      </svg>
+                    )}
+                    {isCurrent && (
+                      <svg className="h-3.5 w-3.5 text-primary flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+                      </svg>
+                    )}
                   </Link>
                 )
               })}
