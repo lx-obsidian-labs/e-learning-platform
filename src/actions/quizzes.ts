@@ -403,7 +403,7 @@ export async function submitQuizAttempt(
         total,
         completedAt: new Date().toISOString(),
       })
-      .select('"id"')
+      .select('"id","score","total"')
       .single()
 
     if (attemptError) return { error: "Failed to submit quiz" }
