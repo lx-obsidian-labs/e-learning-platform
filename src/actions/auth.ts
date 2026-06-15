@@ -37,7 +37,7 @@ export async function signUp(formData: FormData) {
   return { success: true }
 }
 
-export async function signIn(formData: FormData) {
+export async function signIn(prevState: { error: string } | { success: true } | null, formData: FormData) {
   const supabase = await createClient()
 
   const email = formData.get("email") as string
