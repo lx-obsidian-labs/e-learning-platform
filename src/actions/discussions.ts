@@ -4,6 +4,7 @@ import { createAdminClient } from "@/lib/supabase/admin"
 import { getCurrentUserWithRole } from "@/actions/auth"
 import { revalidatePath } from "next/cache"
 import { randomUUID } from "crypto"
+import { moderateContent } from "@/lib/nvidia-ai"
 
 export async function createDiscussion(lessonId: string, formData: FormData) {
   const user = await getCurrentUserWithRole()
@@ -48,6 +49,37 @@ export async function createDiscussion(lessonId: string, formData: FormData) {
     .single()
 
   try {
+    // Run moderation synchronously before insertion
+    try {
+      const modResult = await moderateContent(content.trim())
+      if (modResult.verdict === "reject") {
+        return { error: "Content violates community guidelines" }
+      }
+
+      // If flagged, create a lightweight notification for instructors/admins
+      if (modResult.verdict === "flag") {
+        // fetch course instructor to notify
+        const { data: courseRow } = await supabase
+          .from("courses")
+          .select('instructorId')
+          .eq('"id"', mod.courseId)
+          .maybeSingle()
+
+        const instructorId = courseRow?.instructorId ?? null
+        if (instructorId) {
+          await supabase.from("notifications").insert({
+            id: randomUUID(),
+            title: "Flagged discussion",
+            message: `A discussion was flagged for review: ${modResult.reason}`,
+            userId: instructorId,
+          })
+        }
+      }
+    } catch (err) {
+      // If moderation fails, continue but log
+      console.warn("Moderation error:", err)
+    }
+
     const { error } = await supabase
       .from("discussions")
       .insert({

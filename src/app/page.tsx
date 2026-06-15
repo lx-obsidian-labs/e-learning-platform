@@ -59,7 +59,7 @@ export default async function HomePage() {
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {featured.map((course, idx) => (
                 <Link key={course.id} href={`/courses/${course.slug}`} className="group">
-                  <Card className="overflow-hidden card-hover h-full border-border/50 bg-card/50 backdrop-blur-sm">
+                  <Card className="overflow-hidden card-hover h-full border-border/50 bg-card/50 backdrop-blur-sm" variant="pro">
                     <div className={`aspect-video bg-gradient-to-br ${featuredGradients[idx % featuredGradients.length]} flex items-center justify-center relative overflow-hidden`}>
                       <div className="absolute inset-0 bg-black/10 group-hover:bg-black/5 transition-colors" />
                       <div className="thumbnail-overlay absolute inset-0" />

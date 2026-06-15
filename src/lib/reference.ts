@@ -1,6 +1,6 @@
 import { createAdminClient } from "@/lib/supabase/admin"
 
-const PREFIX = "RIV"
+const PREFIX = "EDU"
 
 export async function generateReference(): Promise<string> {
   const admin = createAdminClient()

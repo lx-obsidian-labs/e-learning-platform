@@ -30,11 +30,11 @@ export function EnrollButton({ courseId, courseSlug, enrolled }: Props) {
   }
 
   return enrolled ? (
-    <Button asChild size="lg">
+    <Button asChild size="lg" className="btn-premium">
       <Link href={`/courses/${courseSlug}`}>Continue Learning</Link>
     </Button>
   ) : (
-    <Button size="lg" onClick={handleEnroll} disabled={pending}>
+    <Button size="lg" onClick={handleEnroll} disabled={pending} className="btn-premium">
       {pending ? "Enrolling..." : "Enroll Free"}
     </Button>
   )

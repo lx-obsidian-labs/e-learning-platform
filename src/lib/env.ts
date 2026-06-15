@@ -46,9 +46,9 @@ export function validateEnv() {
 export function getPaymentConfig() {
   return {
     bankName: process.env.BANK_NAME || "First National Bank (FNB)",
-    accountName: process.env.BANK_ACCOUNT_NAME || "LX Obsidian Labs",
+    accountName: process.env.BANK_ACCOUNT_NAME || "Edu Learn",
     accountNumber: process.env.BANK_ACCOUNT_NUMBER || "628419273810",
     branchCode: process.env.BANK_BRANCH_CODE || "255005",
-    referencePrefix: process.env.PAYMENT_REFERENCE_PREFIX || "RIV",
+    referencePrefix: process.env.PAYMENT_REFERENCE_PREFIX || "EDU",
   }
 }

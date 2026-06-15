@@ -6,6 +6,7 @@ import { notFound } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { AiTutor } from "@/components/ai-tutor"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { EnrollButton } from "./enroll-button"
 import { ReviewSection } from "./review-section"
@@ -179,7 +180,7 @@ export default async function CourseDetailPage({
 
       <div className="grid gap-8 lg:grid-cols-3">
         <div className="lg:col-span-2 space-y-6">
-          <Card>
+          <Card variant="pro">
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle>Course Content</CardTitle>
               <div className="flex items-center gap-3 text-xs">
@@ -325,7 +326,7 @@ export default async function CourseDetailPage({
             </Button>
           )}
 
-          <Card>
+          <Card variant="pro">
             <CardHeader>
               <CardTitle className="text-sm">Instructor</CardTitle>
             </CardHeader>
@@ -344,7 +345,7 @@ export default async function CourseDetailPage({
             </CardContent>
           </Card>
 
-          <Card>
+          <Card variant="pro">
             <CardHeader>
               <CardTitle className="text-sm">Course Stats</CardTitle>
             </CardHeader>
@@ -371,6 +372,18 @@ export default async function CourseDetailPage({
               )}
             </CardContent>
           </Card>
+
+          {/* AI Tutor: visible to enrolled users, otherwise show a hint */}
+          <div>
+            {enrolled ? (
+              <AiTutor courseId={course.id} />
+            ) : (
+              <div className="p-4 rounded-lg border bg-muted/50 text-sm text-muted-foreground">
+                AI Tutor is available when you enroll in the course. <br />
+                <a href="#enroll" className="text-primary underline">Enroll to enable the AI Tutor</a>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 

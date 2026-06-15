@@ -38,25 +38,25 @@ export default async function AdminCoursesPage() {
       </div>
 
       <div className="grid gap-4 md:grid-cols-4">
-        <Card className="border-l-4 border-l-blue-500">
+        <Card className="border-l-4 border-l-blue-500" variant="pro">
           <CardContent className="py-4">
             <p className="text-sm text-muted-foreground">Total</p>
             <p className="text-2xl font-bold">{totalCount || 0}</p>
           </CardContent>
         </Card>
-        <Card className="border-l-4 border-l-green-500">
+        <Card className="border-l-4 border-l-green-500" variant="pro">
           <CardContent className="py-4">
             <p className="text-sm text-muted-foreground">Published</p>
             <p className="text-2xl font-bold">{publishedCount || 0}</p>
           </CardContent>
         </Card>
-        <Card className="border-l-4 border-l-amber-500">
+        <Card className="border-l-4 border-l-amber-500" variant="pro">
           <CardContent className="py-4">
             <p className="text-sm text-muted-foreground">Drafts</p>
             <p className="text-2xl font-bold">{draftCount || 0}</p>
           </CardContent>
         </Card>
-        <Card className="border-l-4 border-l-purple-500">
+        <Card className="border-l-4 border-l-purple-500" variant="pro">
           <CardContent className="py-4">
             <p className="text-sm text-muted-foreground">Import</p>
             <div className="flex items-center gap-2">
@@ -70,7 +70,7 @@ export default async function AdminCoursesPage() {
       </div>
 
       {list.length === 0 ? (
-        <Card>
+        <Card variant="pro">
           <CardContent className="flex flex-col items-center gap-4 py-16">
             <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center">
               <svg className="h-8 w-8 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>

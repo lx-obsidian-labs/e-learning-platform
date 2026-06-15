@@ -22,7 +22,7 @@ export function StatCard({
   iconClassName,
 }: StatCardProps) {
   return (
-    <Card className={cn("card-glow", className)}>
+    <Card className={cn("card-glow pro-card", className)}>
       <CardContent className="py-4">
         <div className="flex items-center justify-between">
           <div className="space-y-1">

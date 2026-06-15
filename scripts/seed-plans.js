@@ -35,7 +35,7 @@ const plans = [
   {
     id: "plan_premium",
     name: "Premium",
-    description: "Unlock the full LX Obsidian experience.",
+    description: "Unlock the full Edu Learn experience.",
     price: 9,
     currency: "ZAR",
     interval: "month",

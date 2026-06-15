@@ -87,7 +87,7 @@ export function ReviewSection({ courseId, courseSlug, reviews, canReview, userRe
 
   return (
     <div className="space-y-6">
-      <Card>
+      <Card variant="pro">
         <CardHeader>
           <CardTitle>
             Reviews ({reviews.length})

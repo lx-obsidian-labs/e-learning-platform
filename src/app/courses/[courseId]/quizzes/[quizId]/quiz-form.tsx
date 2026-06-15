@@ -63,7 +63,7 @@ export function QuizForm({ quizId, questions }: Props) {
   if (result) {
     const percentage = Math.round((result.score / result.total) * 100)
     return (
-      <Card>
+      <Card variant="pro">
         <CardHeader>
           <CardTitle>Quiz Complete</CardTitle>
         </CardHeader>
@@ -90,7 +90,7 @@ export function QuizForm({ quizId, questions }: Props) {
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       {questions.map((q, idx) => (
-        <Card key={q.id}>
+        <Card key={q.id} variant="pro">
           <CardHeader>
             <CardTitle className="text-base">
               {idx + 1}. {q.text}

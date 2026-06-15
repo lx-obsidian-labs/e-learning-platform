@@ -45,7 +45,7 @@ export function HeroSection() {
             className="mt-6 text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed"
           >
             Access high-quality video lessons, interactive quizzes, and earn verified certificates
-            — all completely free. Start your learning journey with LX Obsidian Labs today.
+            — all completely free. Start your learning journey with Edu Learn today.
           </motion.p>
 
           <motion.div

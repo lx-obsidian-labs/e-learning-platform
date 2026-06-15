@@ -48,7 +48,7 @@ export default function FAQPage() {
             Frequently asked questions
           </h1>
           <p className="mt-4 text-lg text-muted-foreground max-w-2xl mx-auto">
-            Everything you need to know about LX Obsidian Labs.
+            Everything you need to know about Edu Learn.
           </p>
         </div>
       </section>

@@ -47,7 +47,7 @@ export function FeaturesSection() {
     <AnimatedSection className="py-24">
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
         <div className="text-center max-w-2xl mx-auto mb-14">
-          <Badge variant="secondary" className="mb-4">Why Choose LX Obsidian</Badge>
+          <Badge variant="secondary" className="mb-4">Why Choose Edu Learn</Badge>
           <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">
             Everything you need to succeed
           </h2>

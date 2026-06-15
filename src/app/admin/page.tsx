@@ -150,7 +150,7 @@ export default async function AdminPage() {
           <div>
             <h2 className="text-xl font-semibold mb-4">Top Rated Courses</h2>
             {topCoursesWithMeta.length === 0 ? (
-              <Card>
+              <Card variant="pro">
                 <CardContent className="py-8 text-center text-muted-foreground">
                   No published courses yet
                 </CardContent>
@@ -158,7 +158,7 @@ export default async function AdminPage() {
             ) : (
               <div className="space-y-3">
                 {topCoursesWithMeta.map((course, idx) => (
-                  <Card key={course.id}>
+                  <Card key={course.id} variant="pro">
                     <CardContent className="flex items-center justify-between py-3">
                       <div className="flex items-center gap-3 min-w-0">
                         <span className="text-lg font-bold text-muted-foreground w-6 shrink-0">
@@ -241,7 +241,7 @@ export default async function AdminPage() {
             />
           </div>
 
-          <Card>
+          <Card variant="pro">
             <CardHeader>
               <CardTitle className="text-sm">User Distribution</CardTitle>
             </CardHeader>

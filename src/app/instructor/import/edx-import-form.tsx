@@ -84,7 +84,7 @@ export function EdxImportForm() {
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {results.map((course) => (
-          <Card key={course.id}>
+          <Card key={course.id} variant="pro">
             <CardHeader>
               <div className="flex items-start justify-between gap-2">
                 <CardTitle className="line-clamp-1 text-base">{course.title}</CardTitle>

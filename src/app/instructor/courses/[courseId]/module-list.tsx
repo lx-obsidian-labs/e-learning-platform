@@ -268,7 +268,7 @@ export function ModuleList({ courseId, modules }: Props) {
       </div>
 
       {modules.map((mod) => (
-        <Card key={mod.id}>
+        <Card key={mod.id} variant="pro">
           <CardHeader className="py-3">
             <div className="flex items-center justify-between">
               <div>
@@ -313,7 +313,7 @@ export function ModuleList({ courseId, modules }: Props) {
         </Card>
       ))}
 
-      <Card className="border-dashed">
+      <Card className="border-dashed" variant="pro">
         <CardContent className="py-4">
           <div className="flex gap-3">
             <Input

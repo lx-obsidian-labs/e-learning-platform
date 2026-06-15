@@ -5,11 +5,11 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 
 const team = [
   { name: "Siphesihle Nathan Vilane", role: "Founder & Lead Developer", initials: "SV" },
-  { name: "LX Obsidian Labs", role: "Design & Engineering", initials: "LX" },
+  { name: "Edu Learn", role: "Design & Engineering", initials: "EL" },
 ]
 
 const milestones = [
-  { year: "2024", title: "Platform Conception", desc: "LX Obsidian Labs was founded with a vision to democratize education through technology." },
+  { year: "2024", title: "Platform Conception", desc: "Edu Learn was founded with a vision to democratize education through technology." },
   { year: "2025", title: "Beta Launch", desc: "Launched our first set of courses with interactive video lessons and progress tracking." },
   { year: "2026", title: "Full Release", desc: "Expanded to 10+ courses, AI tutor integration, and verified certification system." },
 ]
@@ -28,7 +28,7 @@ export default function AboutPage() {
             <span className="gradient-text bg-gradient-to-r from-primary to-primary/60">Through Technology</span>
           </h1>
           <p className="mt-6 text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-            LX Obsidian Labs is a premium e-learning platform built to provide
+            Edu Learn is a premium e-learning platform built to provide
             high-quality, accessible education to learners worldwide. We believe
             knowledge should be free and accessible to everyone.
           </p>
@@ -51,7 +51,7 @@ export default function AboutPage() {
               </p>
               <p className="text-muted-foreground leading-relaxed">
                 Whether you are starting a new career, upskilling for your current
-                role, or exploring a passion, LX Obsidian Labs provides the tools
+                role, or exploring a passion, Edu Learn provides the tools
                 and resources you need to succeed.
               </p>
             </div>

@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { chatCompletion, buildTutorPrompt } from "@/lib/nvidia-ai"
 import { NextRequest, NextResponse } from "next/server"
+import { randomUUID } from "crypto"
 
 export async function POST(request: NextRequest) {
   const supabase = await createClient()
@@ -53,6 +54,19 @@ export async function POST(request: NextRequest) {
   try {
     const messages = buildTutorPrompt(question, context || "No course content available yet.", history ?? [])
     const reply = await chatCompletion({ messages })
+
+    // persist chat (transient) to ai_chats
+    try {
+      await createAdminClient().from('ai_chats').insert({
+        id: randomUUID(),
+        userId: user.id,
+        courseId,
+        messages: JSON.stringify([...(history ?? []), { role: 'user', content: question }, { role: 'assistant', content: reply }]),
+      })
+    } catch (err) {
+      console.warn('Failed to persist ai chat', err)
+    }
+
     return NextResponse.json({ reply })
   } catch (error) {
     return NextResponse.json(
@@ -61,5 +75,3 @@ export async function POST(request: NextRequest) {
     )
   }
 }
-
-

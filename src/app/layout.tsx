@@ -21,13 +21,17 @@ const geistMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-  title: "LX Obsidian Labs - Premium E-Learning Platform",
+  title: "Edu Learn - Premium E-Learning Platform",
   description: "Access expert-led courses, track your progress with interactive lessons, and earn verified certificates. Start your learning journey today.",
-  keywords: ["e-learning", "online courses", "education", "LX Obsidian Labs", "certificates"],
+  keywords: ["e-learning", "online courses", "education", "Edu Learn", "certificates"],
   openGraph: {
-    title: "LX Obsidian Labs - Premium E-Learning Platform",
+    title: "Edu Learn - Premium E-Learning Platform",
     description: "Learn anything, anywhere, anytime with expert-led courses and verified certificates.",
     type: "website",
+  },
+  icons: {
+    icon: '/favicon.svg',
+    shortcut: '/favicon.svg',
   },
 }
 

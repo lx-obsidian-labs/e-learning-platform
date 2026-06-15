@@ -78,3 +78,43 @@ ${context.slice(0, 4000)}
   messages.push({ role: "user", content: question })
   return messages
 }
+
+export function buildRecommendationPrompt(userContext: any, courses: any[]) {
+  const system = `You are an intelligent course recommender. Use the user's context to recommend relevant courses.`
+  const messages: Message[] = [{ role: 'system', content: system }]
+  messages.push({ role: 'user', content: `USER_CONTEXT:\n${JSON.stringify(userContext)}\nCOURSES:\n${JSON.stringify(courses)}` })
+  return messages
+}
+
+export async function moderateContent(text: string) {
+  // Ask the model to strictly output a JSON object with verdict and reason.
+  const system = `You are a content moderator. Classify the following user-generated content.
+
+Rules:
+- If the content includes hate speech, violent threats, sexual content involving minors, explicit calls for illegal activity, or direct targeted harassment, return verdict "reject".
+- If the content is questionable (insult, mild harassment, uncivil, or adult sexual content not involving minors) return verdict "flag".
+- Otherwise return verdict "allow".
+
+Output:
+Return a single JSON object with keys: verdict (one of \"allow\", \"flag\", \"reject\") and reason (short string). Do NOT output any other text.`
+
+  const messages: Message[] = [
+    { role: "system", content: system },
+    { role: "user", content: `Content:\n"""\n${text}\n"""` },
+  ]
+
+  try {
+    const reply = await chatCompletion({ messages, temperature: 0, maxTokens: 200 })
+    // Expect strict JSON
+    const jsonStart = reply.indexOf("{")
+    const jsonText = jsonStart >= 0 ? reply.slice(jsonStart) : reply
+    const parsed = JSON.parse(jsonText)
+    const verdict = parsed.verdict && (parsed.verdict === "allow" || parsed.verdict === "flag" || parsed.verdict === "reject") ? parsed.verdict : "allow"
+    const reason = parsed.reason || ""
+    return { verdict, reason }
+  } catch (err) {
+    // If moderation fails, default to allow but log to console
+    console.warn("Moderation failed:", err)
+    return { verdict: "allow", reason: "moderation_unavailable" }
+  }
+}

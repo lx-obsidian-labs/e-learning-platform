@@ -19,7 +19,7 @@ const footerLinks = {
   Community: [
     { href: "/blog", label: "Blog" },
     { href: "/discussions", label: "Discussions" },
-    { href: "/instructor", label: "Teach on LX" },
+    { href: "/instructor", label: "Teach on Edu Learn" },
     { href: "/affiliate", label: "Affiliate Program" },
   ],
 }
@@ -39,19 +39,18 @@ export function Footer() {
           <div className="lg:col-span-2 space-y-4">
             <Link href="/" className="flex items-center gap-2.5 group">
               <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-xs font-bold shadow-lg shadow-indigo-500/20">
-                LX
+                EL
               </div>
               <span className="text-lg font-bold tracking-tight">
                 <span className="gradient-text bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-indigo-400 dark:to-purple-400">
-                  LX
+                  EL
                 </span>
-                <span className="text-muted-foreground"> Obsidian</span>
+                <span className="text-muted-foreground"> Edu Learn</span>
               </span>
             </Link>
-            <p className="text-sm text-muted-foreground max-w-sm leading-relaxed">
-              A premium e-learning platform built for the future of education. Access expert-led courses,
-              track your progress, and earn verified certificates.
-            </p>
+              <p className="text-sm text-muted-foreground max-w-sm leading-relaxed">
+                Edu Learn is a modern e-learning platform. Access expert-led courses, track your progress, and earn verified certificates.
+              </p>
             <div className="flex items-center gap-3 pt-2">
               {[
                 { name: "Twitter", icon: "M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" },
@@ -97,11 +96,11 @@ export function Footer() {
       <div className="border-t border-border/40">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 py-6 flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-xs text-muted-foreground">
-            &copy; {new Date().getFullYear()} LX Obsidian Labs. All rights reserved.
+            &copy; {new Date().getFullYear()} Edu Learn. All rights reserved.
           </p>
           <p className="text-xs text-muted-foreground">
             Developed by{" "}
-            <span className="font-semibold text-foreground/80">LX Obsidian Labs</span>
+            <span className="font-semibold text-foreground/80">Edu Learn</span>
             {" "}&middot;{" "}
             Coded by{" "}
             <span className="font-semibold text-foreground/80">Siphesihle Nathan Vilane</span>

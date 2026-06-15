@@ -108,7 +108,7 @@ export function LessonDiscussions({ lessonId, discussions, userId }: Props) {
   }
 
   return (
-    <Card>
+    <Card variant="pro">
       <CardHeader>
         <CardTitle>Discussions ({discussions.length})</CardTitle>
       </CardHeader>

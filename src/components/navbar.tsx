@@ -90,13 +90,13 @@ export function Navbar({ initialUser }: { initialUser?: NavbarUser | null }) {
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6">
         <Link href="/" className="flex items-center gap-2.5 group">
           <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-xs font-bold group-hover:scale-105 transition-transform shadow-lg shadow-indigo-500/20">
-            LX
+            EL
           </div>
           <span className="text-lg font-bold tracking-tight">
-            <span className="gradient-text bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-indigo-400 dark:to-purple-400">
-              LX
-            </span>
-            <span className="text-muted-foreground"> Obsidian</span>
+              <span className="gradient-text bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-indigo-400 dark:to-purple-400">
+                EL
+              </span>
+              <span className="text-muted-foreground"> Edu Learn</span>
           </span>
         </Link>
 

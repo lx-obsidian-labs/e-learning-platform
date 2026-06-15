@@ -8,6 +8,10 @@ import { Badge } from "@/components/ui/badge"
 import { StatCard } from "@/components/dashboard/stat-card"
 import { ProgressCard } from "@/components/dashboard/progress-card"
 import { BookOpen, Clock, CheckCircle, TrendingUp, ArrowRight } from "lucide-react"
+import { getRecommendationsForUser } from "@/lib/recommendations"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { getInsightsForUser } from "@/lib/recommendations"
+import { AiInsights } from "@/components/ai-insights"
 
 export const dynamic = "force-dynamic"
 
@@ -84,6 +88,21 @@ export default async function DashboardPage() {
 
   const totalCompletedLessons = completedLessonIds?.length || 0
 
+  // Get AI recommendations (best-effort)
+  let recommendations: any[] = []
+  try {
+    recommendations = await getRecommendationsForUser(user.id)
+  } catch (err) {
+    console.warn("Recommendations failed:", err)
+  }
+
+  let insights: any = null
+  try {
+    insights = await getInsightsForUser(user.id)
+  } catch (err) {
+    console.warn("Insights failed:", err)
+  }
+
   return (
     <div className="min-h-screen pt-16 sm:pt-20">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 py-8 space-y-8">
@@ -100,7 +119,7 @@ export default async function DashboardPage() {
                   : "Great job! You've completed all your courses."}
             </p>
           </div>
-          <Button asChild>
+          <Button asChild className="btn-premium">
             <Link href="/courses">Browse Courses</Link>
           </Button>
         </div>
@@ -148,7 +167,7 @@ export default async function DashboardPage() {
               <p className="text-lg text-muted-foreground">
                 You haven&apos;t enrolled in any courses yet
               </p>
-              <Button asChild>
+              <Button asChild className="btn-premium">
                 <Link href="/courses">Explore Courses</Link>
               </Button>
             </CardContent>
@@ -234,6 +253,42 @@ export default async function DashboardPage() {
                 </div>
               </div>
             )}
+
+            {recommendations && recommendations.length > 0 && (
+              <div>
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-xl font-semibold">Recommended For You</h2>
+                  <span className="text-sm text-muted-foreground">Personalized suggestions powered by AI</span>
+                </div>
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                  {recommendations.slice(0, 6).map((r: any, idx: number) => (
+                    <Card key={r.slug} className="pro-card card-glow">
+                      <CardContent className="space-y-2">
+                        <div className="flex items-start justify-between">
+                          <div>
+                            <h3 className="font-semibold">{r.title}</h3>
+                            <p className="text-xs text-muted-foreground">{r.reason}</p>
+                          </div>
+                          <div className="text-right">
+                            <div className="text-sm font-medium">Score: {r.score ?? "--"}%</div>
+                            <div className="text-xs text-muted-foreground">Est. {r.predicted_weeks_to_complete ?? "--"} wk</div>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <a href={`/courses/${r.slug}`} className="text-sm text-primary hover:underline">View course</a>
+                          <span className="text-muted-foreground">•</span>
+                          <span className="text-sm">Match: {r.score ?? "--"}%</span>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+            )}
+            {/* Render insights trigger and auto-open if completionRate is below 60% */}
+            <div className="mt-6">
+              <AiInsights initialInsights={insights} autoOpen={completionRate < 60} />
+            </div>
           </>
         )}
       </div>

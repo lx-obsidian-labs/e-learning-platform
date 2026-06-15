@@ -44,7 +44,7 @@ const defaultPlans = [
     price: 9,
     currency: "ZAR",
     interval: "month",
-    desc: "Unlock the full LX Obsidian experience.",
+    desc: "Unlock the full Edu Learn experience.",
     features: [
       "Everything in Free",
       "AI Tutor access",

@@ -79,7 +79,7 @@ export function ImportForm() {
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {results.map((course) => (
-          <Card key={course.sourceId}>
+          <Card key={course.sourceId} variant="pro">
             <CardHeader>
               <div className="flex items-start justify-between">
                 <CardTitle className="line-clamp-1 text-base">{course.title}</CardTitle>

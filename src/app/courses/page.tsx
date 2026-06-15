@@ -70,7 +70,7 @@ export default async function CoursesPage({
 
               return (
                 <Link key={course.id} href={`/courses/${course.slug}`} className="group animate-fade-in" style={{ animationDelay: `${idx * 50}ms` }}>
-                  <Card className="overflow-hidden card-hover h-full border-0 shadow-sm">
+                  <Card className="overflow-hidden card-hover h-full border-0 shadow-sm" variant="pro">
                     <div className={`aspect-video relative overflow-hidden ${course.thumbnail ? "" : `bg-gradient-to-br ${gradient}`}`}>
                       {course.thumbnail ? (
                         <img src={course.thumbnail} alt={course.title} className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500" />

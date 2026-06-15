@@ -1,0 +1,22 @@
+name: AI Chat Cleanup
+
+on:
+  schedule:
+    - cron: '0 3 * * *' # daily at 03:00 UTC
+  workflow_dispatch: {}
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Post cleanup request
+        env:
+          CLEANUP_URL: ${{ secrets.CLEANUP_URL }}
+          AI_CLEANUP_SECRET: ${{ secrets.AI_CLEANUP_SECRET }}
+        run: |
+          if [ -z "$CLEANUP_URL" ] || [ -z "$AI_CLEANUP_SECRET" ]; then
+            echo "Missing CLEANUP_URL or AI_CLEANUP_SECRET secret" >&2
+            exit 1
+          fi
+          echo "Triggering AI chat cleanup"
+          curl -sSf -X POST "$CLEANUP_URL" -H "Content-Type: application/json" -d '{"secret":"'"$AI_CLEANUP_SECRET"'"}'

@@ -43,7 +43,7 @@ export function ProgressCard({
 
   return (
     <Link href={`/courses/${slug}`} className="group">
-      <Card className="overflow-hidden card-hover h-full">
+      <Card className="overflow-hidden card-hover h-full pro-card">
         <div className={`h-20 bg-gradient-to-br ${bg} relative`}>
           <div className="absolute inset-0 bg-black/10" />
           <div className="absolute bottom-2 left-3 right-3">

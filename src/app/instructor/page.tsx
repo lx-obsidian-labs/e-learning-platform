@@ -295,7 +295,7 @@ export default async function InstructorPage() {
           </div>
 
           {quizAnalytics.length === 0 ? (
-            <Card>
+            <Card variant="pro">
               <CardContent className="flex flex-col items-center gap-4 py-12">
                 <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center">
                   <Award className="h-6 w-6 text-muted-foreground" />
@@ -308,7 +308,7 @@ export default async function InstructorPage() {
           ) : (
             <div className="space-y-3">
               {quizAnalytics.slice(0, 6).map((qa) => (
-                <Card key={qa.quizId}>
+                <Card key={qa.quizId} variant="pro">
                   <CardContent className="py-3">
                     <div className="flex items-center justify-between mb-2">
                       <div className="min-w-0 flex-1">
@@ -354,7 +354,7 @@ export default async function InstructorPage() {
           </div>
 
           {missedQuestions.length === 0 ? (
-            <Card>
+            <Card variant="pro">
               <CardContent className="flex flex-col items-center gap-4 py-12">
                 <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center">
                   <Award className="h-6 w-6 text-muted-foreground" />
@@ -367,7 +367,7 @@ export default async function InstructorPage() {
           ) : (
             <div className="space-y-3">
               {missedQuestions.slice(0, 6).map((mq, idx) => (
-                <Card key={idx}>
+                <Card key={idx} variant="pro">
                   <CardContent className="py-3">
                     <div className="flex items-start gap-3">
                       <div className={`mt-0.5 h-6 w-6 rounded-full flex items-center justify-center shrink-0 ${

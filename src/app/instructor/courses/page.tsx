@@ -91,25 +91,25 @@ export default async function InstructorCoursesPage() {
       </div>
 
       <div className="grid gap-4 md:grid-cols-4">
-        <Card className="border-l-4 border-l-blue-500">
+        <Card className="border-l-4 border-l-blue-500" variant="pro">
           <CardContent className="py-4">
             <p className="text-sm text-muted-foreground">Total Courses</p>
             <p className="text-2xl font-bold">{enrichedCourses.length}</p>
           </CardContent>
         </Card>
-        <Card className="border-l-4 border-l-green-500">
+        <Card className="border-l-4 border-l-green-500" variant="pro">
           <CardContent className="py-4">
             <p className="text-sm text-muted-foreground">Published</p>
             <p className="text-2xl font-bold">{publishedCount}</p>
           </CardContent>
         </Card>
-        <Card className="border-l-4 border-l-amber-500">
+        <Card className="border-l-4 border-l-amber-500" variant="pro">
           <CardContent className="py-4">
             <p className="text-sm text-muted-foreground">Drafts</p>
             <p className="text-2xl font-bold">{draftCount}</p>
           </CardContent>
         </Card>
-        <Card className="border-l-4 border-l-purple-500">
+        <Card className="border-l-4 border-l-purple-500" variant="pro">
           <CardContent className="py-4">
             <p className="text-sm text-muted-foreground">Students</p>
             <p className="text-2xl font-bold">{totalStudents}</p>
@@ -118,7 +118,7 @@ export default async function InstructorCoursesPage() {
       </div>
 
       {enrichedCourses.length === 0 ? (
-        <Card>
+        <Card variant="pro">
           <CardContent className="flex flex-col items-center gap-4 py-16">
             <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center">
               <svg className="h-8 w-8 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
@@ -136,7 +136,7 @@ export default async function InstructorCoursesPage() {
           {enrichedCourses.map((course: any) => {
             const g = gradients[course.title.length % gradients.length]
             return (
-              <Card key={course.id} className="overflow-hidden card-hover">
+              <Card key={course.id} className="overflow-hidden card-hover" variant="pro">
                 {course.thumbnail ? (
                   <div className="aspect-video overflow-hidden">
                     <img src={course.thumbnail} alt={course.title} className="h-full w-full object-cover" />

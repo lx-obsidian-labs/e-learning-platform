@@ -346,7 +346,7 @@ export function QuizManager({ moduleId, quizzes }: Props) {
       <h4 className="font-medium text-sm text-muted-foreground">Quizzes</h4>
 
       {quizzes.map((quiz) => (
-        <Card key={quiz.id} className="border-dashed">
+        <Card key={quiz.id} className="border-dashed" variant="pro">
           <CardHeader className="py-2">
             <div className="flex items-center justify-between">
               <div>

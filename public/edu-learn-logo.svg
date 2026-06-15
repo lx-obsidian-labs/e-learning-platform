@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 40">
+  <defs>
+    <linearGradient id="g" x1="0" x2="1">
+      <stop offset="0" stop-color="#6366F1"/>
+      <stop offset="1" stop-color="#8B5CF6"/>
+    </linearGradient>
+  </defs>
+  <rect width="120" height="40" rx="6" fill="none" />
+  <text x="12" y="26" font-family="Inter, Arial, sans-serif" font-size="14" font-weight="700" fill="url(#g)">EL</text>
+  <text x="36" y="26" font-family="Inter, Arial, sans-serif" font-size="12" font-weight="600" fill="#0F172A">Edu Learn</text>
+</svg>

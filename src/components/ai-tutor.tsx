@@ -24,12 +24,22 @@ export function AiTutor({ courseId }: Props) {
   const [input, setInput] = useState("")
   const [loading, setLoading] = useState(false)
   const scrollRef = useRef<HTMLDivElement>(null)
+  const inputRef = useRef<HTMLInputElement | null>(null)
 
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight
     }
   }, [messages])
+
+  useEffect(() => {
+    if (open) {
+      // focus the input when the sheet opens for keyboard users
+      setTimeout(() => {
+        inputRef.current?.focus()
+      }, 120)
+    }
+  }, [open])
 
   async function handleSend(e: React.FormEvent) {
     e.preventDefault()
@@ -68,7 +78,7 @@ export function AiTutor({ courseId }: Props) {
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
-        <Button variant="outline" size="sm">
+        <Button variant="outline" size="sm" aria-label="Open AI Tutor" aria-haspopup="dialog">
           AI Tutor
         </Button>
       </SheetTrigger>
@@ -101,6 +111,9 @@ export function AiTutor({ courseId }: Props) {
                       ? "bg-primary text-primary-foreground"
                       : "bg-muted"
                   }`}
+                  // each message is a live region for screen readers
+                  role="article"
+                  aria-live={msg.role === "assistant" ? "polite" : undefined}
                 >
                   {msg.content}
                 </div>
@@ -125,7 +138,9 @@ export function AiTutor({ courseId }: Props) {
           <Input
             value={input}
             onChange={(e) => setInput(e.target.value)}
+            ref={inputRef}
             placeholder="Ask about this course..."
+            aria-label="Ask the AI tutor a question"
             disabled={loading}
           />
           <Button type="submit" size="sm" disabled={loading || !input.trim()}>
