@@ -38,7 +38,7 @@ Return a strict JSON array of objects with keys: slug, title, score (0-100 integ
 Pick courses that complement the user's progress and suggest next steps. Do not include courses the user is already enrolled in.
 ` 
 
-  const messages = [
+  const messages: { role: "system" | "user" | "assistant"; content: string }[] = [
     { role: 'system', content: 'You are an expert educational recommender.' },
     { role: 'user', content: prompt }
   ]
@@ -72,7 +72,7 @@ export async function getInsightsForUser(userId: string) {
 
 CONTEXT: ${JSON.stringify(userContext)}`
 
-  const messages = [
+  const messages: { role: "system" | "user" | "assistant"; content: string }[] = [
     { role: 'system', content: 'You are an educational coach that provides short, actionable insights.' },
     { role: 'user', content: prompt }
   ]
