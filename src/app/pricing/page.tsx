@@ -1,12 +1,34 @@
+import { createAdminClient } from "@/lib/supabase/admin"
+import { createClient } from "@/lib/supabase/server"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { BuyButton } from "./buy-button"
 
-const plans = [
+export const dynamic = "force-dynamic"
+
+async function getPlans() {
+  const admin = createAdminClient()
+  const { data } = await admin
+    .from("pricing_plans")
+    .select("*")
+    .eq('"active"', true)
+    .order('"price"', { ascending: true })
+  return (data || []).map((p: any) => ({ ...p, features: p.features || [] }))
+}
+
+async function getUser() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  return user
+}
+
+const defaultPlans = [
   {
     name: "Free",
-    price: "$0",
-    period: "forever",
+    price: 0,
+    currency: "USD",
+    interval: null,
     desc: "Get started with our free tier. No credit card required.",
     features: [
       "Access to all free courses",
@@ -15,14 +37,13 @@ const plans = [
       "Community discussions",
       "Basic certificates",
     ],
-    cta: "Get started free",
-    href: "/auth/register",
     featured: false,
   },
   {
     name: "Premium",
-    price: "$9",
-    period: "/month",
+    price: 9,
+    currency: "ZAR",
+    interval: "month",
     desc: "Unlock the full LX Obsidian experience.",
     features: [
       "Everything in Free",
@@ -33,14 +54,13 @@ const plans = [
       "Offline downloads",
       "Early access to new courses",
     ],
-    cta: "Start premium",
-    href: "/auth/register",
     featured: true,
   },
   {
     name: "Enterprise",
-    price: "$29",
-    period: "/month",
+    price: 29,
+    currency: "ZAR",
+    interval: "month",
     desc: "For teams and organizations.",
     features: [
       "Everything in Premium",
@@ -51,8 +71,6 @@ const plans = [
       "Dedicated support",
       "Custom branding",
     ],
-    cta: "Contact sales",
-    href: "/contact",
     featured: false,
   },
 ]
@@ -64,7 +82,14 @@ const faq = [
   { q: "Can I access courses on mobile?", a: "Yes, our platform is fully responsive and works on all devices including smartphones and tablets." },
 ]
 
-export default function PricingPage() {
+export default async function PricingPage() {
+  let plans = await getPlans()
+  if (plans.length === 0) plans = defaultPlans as any
+  const user = await getUser()
+
+  const displayCurrency = (currency: string) =>
+    currency === "ZAR" ? "R" : currency === "USD" ? "$" : currency + " "
+
   return (
     <div className="pt-16">
       <section className="relative py-20 sm:py-28 overflow-hidden">
@@ -83,9 +108,9 @@ export default function PricingPage() {
       <section className="pb-20">
         <div className="mx-auto max-w-7xl px-4 sm:px-6">
           <div className="grid gap-6 lg:grid-cols-3 items-start">
-            {plans.map((plan) => (
+            {plans.map((plan: any, i: number) => (
               <div
-                key={plan.name}
+                key={plan.id || i}
                 className={`relative p-8 rounded-2xl border-2 ${
                   plan.featured
                     ? "border-primary/30 bg-primary/[0.03] shadow-xl shadow-primary/10 scale-[1.02] lg:scale-105"
@@ -100,13 +125,17 @@ export default function PricingPage() {
                 <div className="text-center mb-6 pt-2">
                   <h3 className="text-lg font-semibold">{plan.name}</h3>
                   <div className="mt-4 flex items-baseline justify-center gap-1">
-                    <span className="text-4xl font-bold">{plan.price}</span>
-                    <span className="text-sm text-muted-foreground">{plan.period}</span>
+                    <span className="text-4xl font-bold">
+                      {plan.price === 0 ? "Free" : `${displayCurrency(plan.currency)}${plan.price}`}
+                    </span>
+                    {plan.price > 0 && plan.interval && (
+                      <span className="text-sm text-muted-foreground">/{plan.interval}</span>
+                    )}
                   </div>
                   <p className="text-sm text-muted-foreground mt-2">{plan.desc}</p>
                 </div>
                 <ul className="space-y-3 mb-8">
-                  {plan.features.map((f) => (
+                  {plan.features.map((f: string) => (
                     <li key={f} className="flex items-center gap-3 text-sm">
                       <svg className="h-4 w-4 shrink-0 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
@@ -115,13 +144,17 @@ export default function PricingPage() {
                     </li>
                   ))}
                 </ul>
-                <Button
-                  className={`w-full h-11 ${plan.featured ? "" : "variant-outline"}`}
-                  variant={plan.featured ? "default" : "outline"}
-                  asChild
-                >
-                  <Link href={plan.href}>{plan.cta}</Link>
-                </Button>
+                {plan.price === 0 ? (
+                  <Button className="w-full h-11" variant="outline" asChild>
+                    <Link href="/auth/register">Get started free</Link>
+                  </Button>
+                ) : user ? (
+                  <BuyButton planId={plan.id} label={plan.name === "Enterprise" ? "Contact sales" : "Pay by EFT"} />
+                ) : (
+                  <Button className="w-full h-11" variant={plan.featured ? "default" : "outline"} asChild>
+                    <Link href="/auth/login">Sign in to purchase</Link>
+                  </Button>
+                )}
               </div>
             ))}
           </div>

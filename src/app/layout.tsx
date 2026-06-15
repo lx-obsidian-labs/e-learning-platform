@@ -6,6 +6,9 @@ import { Navbar, type NavbarUser } from "@/components/navbar"
 import { Footer } from "@/components/footer"
 import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
+import { validateEnv } from "@/lib/env"
+
+validateEnv()
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -29,22 +32,27 @@ export const metadata: Metadata = {
 }
 
 async function getInitialUser(): Promise<NavbarUser | null> {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return null
+  try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return null
 
-  const admin = createAdminClient()
-  const { data: profile } = await admin
-    .from("users")
-    .select("name, role")
-    .eq('"id"', user.id)
-    .maybeSingle()
+    const admin = createAdminClient()
+    const { data: profile } = await admin
+      .from("users")
+      .select("name, role, image")
+      .eq('"id"', user.id)
+      .maybeSingle()
 
-  return {
-    id: user.id,
-    email: user.email ?? undefined,
-    name: profile?.name || user.email?.split("@")[0] || "User",
-    role: profile?.role || "STUDENT",
+    return {
+      id: user.id,
+      email: user.email ?? undefined,
+      name: profile?.name || user.email?.split("@")[0] || "User",
+      role: profile?.role || "STUDENT",
+      image: profile?.image || undefined,
+    }
+  } catch {
+    return null
   }
 }
 

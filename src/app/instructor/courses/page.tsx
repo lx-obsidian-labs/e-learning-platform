@@ -5,6 +5,7 @@ import { redirect } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { ArchiveCourseButton } from "@/components/archive-course-button"
 
 export const dynamic = "force-dynamic"
 
@@ -136,7 +137,13 @@ export default async function InstructorCoursesPage() {
             const g = gradients[course.title.length % gradients.length]
             return (
               <Card key={course.id} className="overflow-hidden card-hover">
-                <div className={`h-2 bg-gradient-to-r ${g}`} />
+                {course.thumbnail ? (
+                  <div className="aspect-video overflow-hidden">
+                    <img src={course.thumbnail} alt={course.title} className="h-full w-full object-cover" />
+                  </div>
+                ) : (
+                  <div className={`h-2 bg-gradient-to-r ${g}`} />
+                )}
                 <CardHeader className="pb-2">
                   <div className="flex items-start justify-between gap-2">
                     <CardTitle className="line-clamp-1 text-base">{course.title}</CardTitle>
@@ -184,6 +191,7 @@ export default async function InstructorCoursesPage() {
                   <Button variant="ghost" size="sm" asChild>
                     <Link href={`/courses/${course.slug}`}>View</Link>
                   </Button>
+                  <ArchiveCourseButton courseId={course.id} compact />
                 </CardFooter>
               </Card>
             )

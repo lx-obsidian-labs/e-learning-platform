@@ -425,3 +425,55 @@ ALTER TABLE "orders" ADD CONSTRAINT "orders_courseId_fkey" FOREIGN KEY ("courseI
 -- AddForeignKey
 ALTER TABLE "notifications" ADD CONSTRAINT "notifications_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
+-- AlterTable for EFT support
+ALTER TABLE "orders" ADD COLUMN "paymentMethod" TEXT NOT NULL DEFAULT 'EFT';
+ALTER TABLE "orders" ADD COLUMN "reference" TEXT;
+ALTER TABLE "orders" ADD COLUMN "currency" TEXT NOT NULL DEFAULT 'ZAR';
+ALTER TABLE "orders" ADD COLUMN "planId" TEXT;
+ALTER TABLE "orders" ALTER COLUMN "courseId" DROP NOT NULL;
+
+-- CreateTable
+CREATE TABLE "pricing_plans" (
+    "id" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "description" TEXT,
+    "price" DECIMAL(10,2) NOT NULL,
+    "currency" TEXT NOT NULL DEFAULT 'ZAR',
+    "interval" TEXT,
+    "features" JSONB,
+    "active" BOOLEAN NOT NULL DEFAULT true,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "pricing_plans_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "payment_proofs" (
+    "id" TEXT NOT NULL,
+    "fileUrl" TEXT NOT NULL,
+    "uploadedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "verifiedAt" TIMESTAMP(3),
+    "orderId" TEXT NOT NULL,
+    "verifiedBy" TEXT,
+
+    CONSTRAINT "payment_proofs_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateIndex
+CREATE UNIQUE INDEX "orders_reference_key" ON "orders"("reference");
+
+-- CreateIndex
+CREATE INDEX "orders_paymentMethod_idx" ON "orders"("paymentMethod");
+
+-- CreateIndex
+CREATE INDEX "payment_proofs_orderId_idx" ON "payment_proofs"("orderId");
+
+-- AddForeignKey
+ALTER TABLE "orders" ADD CONSTRAINT "orders_planId_fkey" FOREIGN KEY ("planId") REFERENCES "pricing_plans"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "payment_proofs" ADD CONSTRAINT "payment_proofs_orderId_fkey" FOREIGN KEY ("orderId") REFERENCES "orders"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "payment_proofs" ADD CONSTRAINT "payment_proofs_verifiedBy_fkey" FOREIGN KEY ("verifiedBy") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+

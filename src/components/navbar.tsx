@@ -5,7 +5,7 @@ import { usePathname, useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 import { useTheme } from "next-themes"
 import { Button } from "@/components/ui/button"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,12 +15,14 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { createClient } from "@/lib/supabase/client"
 import { Sun, Moon, Menu, X } from "lucide-react"
+import { NotificationBell } from "@/components/notification-bell"
 
 export type NavbarUser = {
   id: string
   name: string
   email?: string
   role: string
+  image?: string
 }
 
 const navLinks = [
@@ -132,10 +134,13 @@ export function Navbar({ initialUser }: { initialUser?: NavbarUser | null }) {
           )}
 
           {loading ? null : user ? (
-            <DropdownMenu>
+            <>
+              <NotificationBell />
+              <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="flex items-center gap-2 h-9 px-2 rounded-full hover:bg-accent">
                   <Avatar className="h-7 w-7 ring-2 ring-indigo-200 dark:ring-indigo-800">
+                    <AvatarImage src={user.image} />
                     <AvatarFallback className="text-xs bg-indigo-100 dark:bg-indigo-900 text-indigo-600 dark:text-indigo-400">
                       {(user.name || "U").split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase()}
                     </AvatarFallback>
@@ -165,12 +170,22 @@ export function Navbar({ initialUser }: { initialUser?: NavbarUser | null }) {
                     <Link href="/admin" className="cursor-pointer">Admin Panel</Link>
                   </DropdownMenuItem>
                 )}
+                <DropdownMenuItem asChild>
+                  <Link href="/orders" className="cursor-pointer">Orders</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/notifications" className="cursor-pointer">Notifications</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/settings" className="cursor-pointer">Settings</Link>
+                </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleSignOut} className="text-destructive cursor-pointer">
                   Sign out
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
+            </>
           ) : (
             <div className="flex items-center gap-2">
               <Button variant="ghost" size="sm" asChild className="hidden sm:inline-flex">

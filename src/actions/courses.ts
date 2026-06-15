@@ -275,13 +275,30 @@ export async function getCourseBySlug(slug: string) {
   }
 }
 
-export async function getPublishedCourses() {
+export async function getPublishedCourses(params?: {
+  category?: string
+  query?: string
+  sort?: string
+  priceFilter?: string
+  minRating?: number
+}) {
   const supabase = createAdminClient()
-  const { data: courses, error } = await supabase
+  let query = supabase
     .from("courses")
     .select("*")
     .eq('"status"', "PUBLISHED")
-    .order('"createdAt"', { ascending: false })
+
+  if (params?.sort === "price_asc") {
+    query = query.order('"price"', { ascending: true })
+  } else if (params?.sort === "price_desc") {
+    query = query.order('"price"', { ascending: false })
+  } else if (params?.sort === "rating") {
+    query = query.order('"rating"', { ascending: false })
+  } else {
+    query = query.order('"createdAt"', { ascending: false })
+  }
+
+  const { data: courses, error } = await query
 
   if (error) return []
 
@@ -322,5 +339,30 @@ export async function getPublishedCourses() {
     })
   )
 
-  return coursesWithMeta
+  let filtered = coursesWithMeta
+
+  if (params?.category) {
+    filtered = filtered.filter((c) => c.category?.slug === params.category)
+  }
+
+  if (params?.query) {
+    const q = params.query.toLowerCase()
+    filtered = filtered.filter((c) =>
+      c.title.toLowerCase().includes(q) ||
+      (c.description?.toLowerCase().includes(q) ?? false) ||
+      (c.category?.name.toLowerCase().includes(q) ?? false)
+    )
+  }
+
+  if (params?.priceFilter === "free") {
+    filtered = filtered.filter((c) => c.isFree)
+  } else if (params?.priceFilter === "paid") {
+    filtered = filtered.filter((c) => !c.isFree)
+  }
+
+  if (params?.minRating && params.minRating > 0) {
+    filtered = filtered.filter((c) => c.rating >= (params.minRating || 0))
+  }
+
+  return filtered
 }

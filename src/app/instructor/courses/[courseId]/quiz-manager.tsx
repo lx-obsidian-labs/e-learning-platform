@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { createQuiz, deleteQuiz, addQuestion, removeQuestion, addOption, removeOption } from "@/actions/quizzes"
+import { createQuiz, updateQuiz, deleteQuiz, addQuestion, updateQuestion, removeQuestion, addOption, updateOption, removeOption } from "@/actions/quizzes"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -90,6 +90,160 @@ function QuestionForm({
             </div>
           </div>
           <Button type="submit">Add Question</Button>
+        </form>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+function EditQuizDialog({
+  quiz,
+  onDone,
+}: {
+  quiz: QuizData
+  onDone: () => void
+}) {
+  const [open, setOpen] = useState(false)
+
+  async function action(formData: FormData) {
+    const result = await updateQuiz(quiz.id, formData)
+    if (result.success) {
+      toast.success("Quiz updated")
+      setOpen(false)
+      onDone()
+    } else {
+      toast.error(typeof result.error === "string" ? result.error : "Invalid input")
+    }
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button variant="ghost" size="sm" className="h-6 px-2">Edit</Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Edit Quiz</DialogTitle>
+        </DialogHeader>
+        <form action={action} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="title">Title</Label>
+            <Input id="title" name="title" required defaultValue={quiz.title} />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="description">Description</Label>
+            <Textarea id="description" name="description" rows={2} defaultValue={quiz.description ?? ""} />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="passingScore">Passing Score (%)</Label>
+            <Input id="passingScore" name="passingScore" type="number" min="0" max="100" defaultValue={quiz.passingScore ?? ""} />
+          </div>
+          <Button type="submit">Update Quiz</Button>
+        </form>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+function EditQuestionDialog({
+  question,
+  onDone,
+}: {
+  question: QuizData["questions"][0]
+  onDone: () => void
+}) {
+  const [open, setOpen] = useState(false)
+
+  async function action(formData: FormData) {
+    const result = await updateQuestion(question.id, formData)
+    if (result.success) {
+      toast.success("Question updated")
+      setOpen(false)
+      onDone()
+    } else {
+      toast.error(typeof result.error === "string" ? result.error : "Invalid input")
+    }
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button variant="ghost" size="sm" className="h-5 px-1">Edit</Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Edit Question</DialogTitle>
+        </DialogHeader>
+        <form action={action} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="text">Question Text</Label>
+            <Textarea id="text" name="text" required defaultValue={question.text} />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="type">Type</Label>
+              <Select name="type" defaultValue={question.type}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="MULTIPLE_CHOICE">Multiple Choice</SelectItem>
+                  <SelectItem value="TRUE_FALSE">True / False</SelectItem>
+                  <SelectItem value="SHORT_ANSWER">Short Answer</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="points">Points</Label>
+              <Input id="points" name="points" type="number" min="1" defaultValue={question.points} />
+            </div>
+          </div>
+          <Button type="submit">Update Question</Button>
+        </form>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+function EditOptionDialog({
+  option,
+  onDone,
+}: {
+  option: QuizData["questions"][0]["options"][0]
+  onDone: () => void
+}) {
+  const [open, setOpen] = useState(false)
+
+  async function action(formData: FormData) {
+    const result = await updateOption(option.id, formData)
+    if (result.success) {
+      toast.success("Option updated")
+      setOpen(false)
+      onDone()
+    } else {
+      toast.error(typeof result.error === "string" ? result.error : "Invalid input")
+    }
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <button className="text-primary hover:underline text-xs">Edit</button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Edit Option</DialogTitle>
+        </DialogHeader>
+        <form action={action} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="text">Option Text</Label>
+            <Input id="text" name="text" required defaultValue={option.text} />
+          </div>
+          <div className="flex items-center gap-2">
+            <Checkbox id="isCorrect" name="isCorrect" defaultChecked={option.isCorrect} />
+            <Label htmlFor="isCorrect">Correct answer</Label>
+          </div>
+          <Button type="submit">Update Option</Button>
         </form>
       </DialogContent>
     </Dialog>
@@ -205,6 +359,7 @@ export function QuizManager({ moduleId, quizzes }: Props) {
                 {quiz.passingScore && (
                   <span className="text-xs text-muted-foreground">Pass: {quiz.passingScore}%</span>
                 )}
+                <EditQuizDialog quiz={quiz} onDone={() => {}} />
                 <Button variant="ghost" size="sm" className="text-destructive h-6 px-2" onClick={() => handleDeleteQuiz(quiz.id)}>
                   ×
                 </Button>
@@ -222,9 +377,12 @@ export function QuizManager({ moduleId, quizzes }: Props) {
                       <span className="font-medium">{q.order}.</span> {q.text}
                       <span className="text-xs text-muted-foreground ml-2">({q.type}, {q.points}pt)</span>
                     </div>
-                    <Button variant="ghost" size="sm" className="text-destructive h-5 px-1" onClick={() => handleDeleteQuestion(q.id)}>
-                      ×
-                    </Button>
+                    <div className="flex items-center gap-0.5">
+                      <EditQuestionDialog question={q} onDone={() => {}} />
+                      <Button variant="ghost" size="sm" className="text-destructive h-5 px-1" onClick={() => handleDeleteQuestion(q.id)}>
+                        ×
+                      </Button>
+                    </div>
                   </div>
                   <div className="mt-1 space-y-0.5">
                     {q.options.map((o) => (
@@ -232,12 +390,15 @@ export function QuizManager({ moduleId, quizzes }: Props) {
                         <span className={o.isCorrect ? "text-green-600 font-medium" : "text-muted-foreground"}>
                           {o.isCorrect ? "✓" : "○"} {o.text}
                         </span>
-                        <button
-                          className="text-destructive hover:underline ml-auto"
-                          onClick={() => handleDeleteOption(o.id)}
-                        >
-                          ×
-                        </button>
+                        <span className="ml-auto flex items-center gap-1">
+                          <EditOptionDialog option={o} onDone={() => {}} />
+                          <button
+                            className="text-destructive hover:underline"
+                            onClick={() => handleDeleteOption(o.id)}
+                          >
+                            ×
+                          </button>
+                        </span>
                       </div>
                     ))}
                     <OptionForm questionId={q.id} onDone={() => {}} />

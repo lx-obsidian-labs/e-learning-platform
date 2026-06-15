@@ -73,7 +73,8 @@ export async function getCurrentUserWithRole() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return null
 
-  const { data: profile } = await supabase
+  const admin = createAdminClient()
+  const { data: profile } = await admin
     .from("users")
     .select("*")
     .eq('"id"', user.id)

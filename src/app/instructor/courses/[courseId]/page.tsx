@@ -4,6 +4,7 @@ import { createAdminClient } from "@/lib/supabase/admin"
 import { redirect, notFound } from "next/navigation"
 import { CourseForm } from "../course-form"
 import { ModuleList } from "./module-list"
+import { ArchiveCourseButton } from "@/components/archive-course-button"
 
 export const dynamic = "force-dynamic"
 
@@ -65,9 +66,12 @@ export default async function EditCoursePage({
 
   return (
     <div className="max-w-4xl mx-auto space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold">Edit Course</h1>
-        <p className="text-muted-foreground">{enrichedCourse.title}</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold">Edit Course</h1>
+          <p className="text-muted-foreground">{enrichedCourse.title}</p>
+        </div>
+        <ArchiveCourseButton courseId={enrichedCourse.id} />
       </div>
 
       <CourseForm
@@ -80,6 +84,7 @@ export default async function EditCoursePage({
           isFree: enrichedCourse.isFree,
           categoryId: enrichedCourse.categoryId,
           status: enrichedCourse.status,
+          thumbnail: enrichedCourse.thumbnail,
         }}
       />
 

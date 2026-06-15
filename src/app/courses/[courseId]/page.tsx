@@ -111,10 +111,14 @@ export default async function CourseDetailPage({
   return (
     <div className="min-h-screen pt-16 sm:pt-20">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 py-8 space-y-8">
-        <div className={`rounded-xl bg-gradient-to-br ${gradientClasses[gradientIdx]} p-8 sm:p-12 text-white relative overflow-hidden`}>
+        <div className={`rounded-xl relative overflow-hidden ${course.thumbnail ? "" : `bg-gradient-to-br ${gradientClasses[gradientIdx]}`}`}>
+        {course.thumbnail && (
+          <img src={course.thumbnail} alt={course.title} className="absolute inset-0 h-full w-full object-cover" />
+        )}
+        <div className={`relative p-8 sm:p-12 text-white ${course.thumbnail ? "bg-gradient-to-t from-black/90 via-black/60 to-black/40" : ""}`}>
         <div className="absolute inset-0 bg-black/20" />
-        <div className="absolute -top-20 -right-20 w-64 h-64 bg-white/10 rounded-full blur-3xl" />
-        <div className="absolute -bottom-20 -left-20 w-48 h-48 bg-white/5 rounded-full blur-3xl" />
+        {!course.thumbnail && <><div className="absolute -top-20 -right-20 w-64 h-64 bg-white/10 rounded-full blur-3xl" />
+        <div className="absolute -bottom-20 -left-20 w-48 h-48 bg-white/5 rounded-full blur-3xl" /></>}
         <div className="relative space-y-4">
           <div className="flex items-center gap-2">
             {category && (
@@ -170,6 +174,7 @@ export default async function CourseDetailPage({
             )}
           </div>
         </div>
+      </div>
       </div>
 
       <div className="grid gap-8 lg:grid-cols-3">

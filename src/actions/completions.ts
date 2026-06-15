@@ -29,7 +29,7 @@ export async function markLessonComplete(lessonId: string) {
 
   const { data: course } = await supabase
     .from("courses")
-    .select('"slug"')
+    .select('"slug","title"')
     .eq('"id"', mod.courseId)
     .single()
 
@@ -56,6 +56,9 @@ export async function markLessonComplete(lessonId: string) {
         .insert({ id: randomUUID(), userId: user.id, lessonId })
 
       if (insertError) return { error: "Failed to mark lesson complete" }
+
+      const { createNotification } = await import("@/actions/notifications")
+      await createNotification(user.id, "Lesson completed!", `You completed "${lesson.title}"`)
     }
 
     const { data: allModules } = await supabase
@@ -104,6 +107,11 @@ export async function markLessonComplete(lessonId: string) {
       .eq('"id"', enrollment.id)
 
     if (updateError) return { error: "Failed to mark lesson complete" }
+
+    if (newStatus === "COMPLETED") {
+      const { createNotification } = await import("@/actions/notifications")
+      await createNotification(user.id, "Course completed! 🎉", `Congratulations! You completed "${course?.title || "the course"}"!`)
+    }
 
     revalidatePath(`/courses/${course?.slug || mod.courseId}/lessons/${lessonId}`)
     revalidatePath("/dashboard")

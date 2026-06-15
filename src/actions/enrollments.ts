@@ -30,7 +30,16 @@ export async function enrollInCourse(courseId: string) {
   if (existing) return { error: "Already enrolled" }
 
   if (!course.isFree && Number(course.price) > 0) {
-    return { error: "Paid courses require payment" }
+    const { data: paidOrder } = await supabase
+      .from("orders")
+      .select('"id"')
+      .eq('"userId"', user.id)
+      .eq('"status"', "COMPLETED")
+      .maybeSingle()
+
+    if (!paidOrder) {
+      return { error: "This course requires a paid plan. Please visit the pricing page to purchase access." }
+    }
   }
 
   try {
@@ -44,6 +53,18 @@ export async function enrollInCourse(courseId: string) {
       })
 
     if (error) return { error: "Failed to enroll" }
+
+    const { data: courseInfo } = await supabase
+      .from("courses")
+      .select('"title","instructorId"')
+      .eq('"id"', courseId)
+      .single()
+
+    const { createNotification } = await import("@/actions/notifications")
+    await createNotification(user.id, `Welcome to ${courseInfo?.title || "your course"}!`, "You have successfully enrolled. Start learning today!")
+    if (courseInfo?.instructorId) {
+      await createNotification(courseInfo.instructorId, "New enrollment", `${user.name || "A student"} enrolled in ${courseInfo.title}`)
+    }
 
     revalidatePath(`/courses/${courseId}`)
     revalidatePath("/dashboard")

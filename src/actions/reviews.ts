@@ -17,6 +17,14 @@ export async function submitReview(courseId: string, courseSlug: string, formDat
 
   const supabase = createAdminClient()
 
+  const { data: course } = await supabase
+    .from("courses")
+    .select('"title","instructorId"')
+    .eq('"id"', courseId)
+    .single()
+
+  if (!course) return { error: "Course not found" }
+
   const { data: enrollment } = await supabase
     .from("enrollments")
     .select('"id"')
@@ -59,6 +67,11 @@ export async function submitReview(courseId: string, courseSlug: string, formDat
         })
 
       if (error) return { error: "Failed to submit review" }
+    }
+
+    const { createNotification } = await import("@/actions/notifications")
+    if (course.instructorId && course.instructorId !== user.id) {
+      await createNotification(course.instructorId, "New review", `${user.name || "A student"} rated "${course.title}" ${parsed.data.rating}/5`)
     }
 
     const { data: avgResult } = await supabase

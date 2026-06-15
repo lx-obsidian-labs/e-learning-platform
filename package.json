@@ -9,6 +9,7 @@
     "lint": "eslint",
     "seed:auth": "node scripts/seed-auth.js",
     "seed:courses": "node scripts/seed-courses.js",
+    "seed:plans": "node scripts/seed-plans.js",
     "seed:videos": "node scripts/seed-videos.js",
     "test": "vitest run",
     "test:watch": "vitest",

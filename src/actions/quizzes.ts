@@ -192,6 +192,49 @@ export async function addQuestion(quizId: string, formData: FormData) {
   }
 }
 
+export async function updateQuestion(questionId: string, formData: FormData) {
+  const supabase = createAdminClient()
+  const { data: q } = await supabase
+    .from("quiz_questions")
+    .select("*")
+    .eq('"id"', questionId)
+    .single()
+
+  if (!q) return { error: "Not found" }
+
+  const { data: quiz } = await supabase
+    .from("quizzes")
+    .select('"moduleId"')
+    .eq('"id"', q.quizId)
+    .single()
+
+  if (!quiz) return { error: "Not found" }
+
+  const mod = await verifyModuleAccess(quiz.moduleId)
+  if (!mod) return { error: "Unauthorized" }
+
+  const parsed = questionSchema.safeParse({
+    text: formData.get("text") || q.text,
+    type: formData.get("type") || q.type,
+    points: formData.get("points") || q.points,
+  })
+  if (!parsed.success) return { error: parsed.error.flatten().fieldErrors }
+
+  try {
+    const { error } = await supabase
+      .from("quiz_questions")
+      .update(parsed.data)
+      .eq('"id"', questionId)
+
+    if (error) return { error: "Failed to update question" }
+
+    revalidatePath(`/instructor/courses/${mod.courseId}`)
+    return { success: true }
+  } catch {
+    return { error: "Failed to update question" }
+  }
+}
+
 export async function removeQuestion(questionId: string) {
   const supabase = createAdminClient()
   const { data: q } = await supabase
@@ -270,6 +313,55 @@ export async function addOption(questionId: string, formData: FormData) {
   }
 }
 
+export async function updateOption(optionId: string, formData: FormData) {
+  const supabase = createAdminClient()
+  const { data: opt } = await supabase
+    .from("quiz_answer_options")
+    .select("*")
+    .eq('"id"', optionId)
+    .single()
+
+  if (!opt) return { error: "Not found" }
+
+  const { data: question } = await supabase
+    .from("quiz_questions")
+    .select('"quizId"')
+    .eq('"id"', opt.questionId)
+    .single()
+
+  if (!question) return { error: "Not found" }
+
+  const { data: quiz } = await supabase
+    .from("quizzes")
+    .select('"moduleId"')
+    .eq('"id"', question.quizId)
+    .single()
+
+  if (!quiz) return { error: "Not found" }
+
+  const mod = await verifyModuleAccess(quiz.moduleId)
+  if (!mod) return { error: "Unauthorized" }
+
+  const text = (formData.get("text") as string) || opt.text
+  const isCorrect = formData.get("isCorrect") === "true" || formData.get("isCorrect") === "on"
+
+  if (!text?.trim()) return { error: "Option text is required" }
+
+  try {
+    const { error } = await supabase
+      .from("quiz_answer_options")
+      .update({ text, isCorrect })
+      .eq('"id"', optionId)
+
+    if (error) return { error: "Failed to update option" }
+
+    revalidatePath(`/instructor/courses/${mod.courseId}`)
+    return { success: true }
+  } catch {
+    return { error: "Failed to update option" }
+  }
+}
+
 export async function removeOption(optionId: string) {
   const supabase = createAdminClient()
   const { data: opt } = await supabase
@@ -343,7 +435,7 @@ export async function submitQuizAttempt(
 
   const { data: course } = await supabase
     .from("courses")
-    .select('"slug"')
+    .select('"slug","title"')
     .eq('"id"', mod.courseId)
     .single()
 
@@ -411,6 +503,9 @@ export async function submitQuizAttempt(
       .single()
 
     if (attemptError) return { error: "Failed to submit quiz" }
+
+    const { createNotification } = await import("@/actions/notifications")
+    await createNotification(user.id, "Quiz submitted!", `You scored ${score}/${total} on "${quiz.title}"`)
 
     for (const a of answers) {
       const { error: ansError } = await supabase

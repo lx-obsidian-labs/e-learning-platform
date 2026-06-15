@@ -1,70 +1,67 @@
 E-LEARNING PLATFORM — SETUP SUMMARY
 ====================================
-Last updated: 2026-06-14
+Last updated: 2026-06-15
 
 PREREQUISITES
 - Node.js (v20+)
-- PostgreSQL (or Supabase free tier)
+- Supabase free tier (PostgreSQL via Supabase JS client)
 - npm
 
 TECH STACK
-- Next.js 16 (App Router, webpack — Turbopack not supported on win32/x64)
-- Prisma 7 + PostgreSQL
-- Auth.js v5 (next-auth@beta, Credentials provider, JWT)
-- Tailwind CSS v4
-- shadcn/ui (Nova preset, 15 components)
+- Next.js 16 (App Router, webpack — use `npm run dev` which passes `--webpack`)
+- Tailwind CSS v4 + shadcn/ui (radix-nova)
+- Supabase for auth + database (service-role key, no direct postgres)
+- framer-motion for animations
+- lucide-react for icons
 
-ENVIRONMENT (.env) — fill these 3 values:
-  DATABASE_URL   — Supabase Project Settings → Database → Connection string (URI)
-  AUTH_SECRET    — Run: node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
-  NVIDIA_API_KEY — https://build.nvidia.com/ → sign up → copy key
+ENVIRONMENT (.env) — fill these 3 + optional payment vars:
+  NEXT_PUBLIC_SUPABASE_URL          — Project Settings → API → Project URL
+  NEXT_PUBLIC_SUPABASE_ANON_KEY     — Project Settings → API → anon public key
+  SUPABASE_SERVICE_ROLE_KEY         — Project Settings → API → service_role key
+  BANK_NAME, BANK_ACCOUNT_NAME, BANK_ACCOUNT_NUMBER, BANK_BRANCH_CODE, PAYMENT_REFERENCE_PREFIX — optional, for EFT payments
+  NVIDIA_API_KEY                    — optional, for AI tutor
 
 SETUP (using Supabase SQL Editor)
   1. Go to https://supabase.com/dashboard/project/nahrsxuftwrdpcldnurw
   2. Open the SQL Editor
-  3. Open prisma/migration.sql → copy all → paste in SQL Editor → Run
-  4. Open prisma/seed.sql → copy all → paste in SQL Editor → Run
-  5. npm run dev -- --webpack
+  3. Open prisma/migration.sql → copy all → paste in SQL Editor → Run (creates all tables)
+  4. npm run seed:auth     (creates demo users)
+  5. npm run seed:courses  (creates 20 courses)
+  6. npm run seed:plans    (creates pricing plans)
+  7. npm run dev
 
 DEMO USERS (after seeding)
   Admin:       admin@example.com / demo1234
   Instructor:  instructor@example.com / demo1234
   Student:     student@example.com / demo1234
 
-PRISMA SCHEMA (17 models)
-  User, Account, Session, VerificationToken, Category, Course, Module,
-  Lesson, LessonCompletion, Enrollment, Quiz, QuizQuestion, QuizAnswerOption,
-  QuizAttempt, QuizUserAnswer, Certificate, Review, Discussion, Order, Notification
+DB SCHEMA (tables via prisma/migration.sql)
+  User, Category, Course, Module, Lesson, LessonCompletion, Enrollment,
+  Quiz, QuizQuestion, QuizAnswerOption, QuizAttempt, QuizUserAnswer,
+  Certificate, Review, Discussion, Order, Notification, PricingPlan,
+  PaymentProof
 
-ROUTES (19 total)
-  /                                         — Home
-  /auth/login                               — Login
-  /auth/register                            — Register
-  /auth/error                               — Auth error
-  /courses                                  — Course catalog
-  /courses/[slug]                           — Course detail (with enrollment)
-  /courses/[slug]/lessons/[lessonId]        — Lesson viewer (prev/next, complete)
-  /courses/[slug]/quizzes/[quizId]          — Quiz taking (auto-graded)
-  /dashboard                                — Student dashboard (enrolled courses)
-  /instructor                               — Instructor dashboard (stats)
+ROUTES (37 total)
+  /                                         — Premium landing page
+  /auth/login, /auth/register               — Auth
+  /courses                                  — Course catalog with search/filter
+  /courses/[courseId]                       — Course detail
+  /courses/[courseId]/lessons/[lessonId]    — Lesson viewer
+  /courses/[courseId]/quizzes/[quizId]      — Quiz taking
+  /dashboard                                — Student analytics dashboard
+  /instructor                               — Instructor analytics dashboard
   /instructor/courses                       — Course management
-  /instructor/courses/new                   — Create course
-  /instructor/courses/[id]                  — Edit course (modules + lessons + quizzes)
-  /instructor/import                        — Import free courses (Khan Academy)
-  /admin                                    — Admin panel
-  /api/auth/[...nextauth]                   — Auth.js API
-  /api/auth/register                        — Registration API
-  /api/external-courses                     — Search external APIs
-  /api/external-courses/import              — Import external course
-
-ACTIONS (6 files)
-  src/actions/courses.ts       — create, update, delete, getInstructorCourses, getPublishedCourses, getCourseBySlug
-  src/actions/categories.ts    — getCategories, seedCategories
-  src/actions/modules.ts       — createModule, updateModule, deleteModule, reorderModules
-  src/actions/lessons.ts       — createLesson, updateLesson, deleteLesson
-  src/actions/enrollments.ts   — enrollInCourse, getStudentEnrollments, isEnrolled, getEnrolledCourseIds
-  src/actions/completions.ts   — markLessonComplete, getCompletedLessonIds
-  src/actions/quizzes.ts       — createQuiz, updateQuiz, deleteQuiz, addQuestion, removeQuestion, addOption, removeOption, submitQuizAttempt, getQuizAttempts
+  /instructor/courses/new, /[courseId]      — Create / Edit course
+  /instructor/import                        — Import courses
+  /admin                                    — Admin overview
+  /admin/courses, /admin/users, /admin/import — Admin pages
+  /admin/payments                           — EFT payment verification
+  /settings                                 — Profile & settings
+  /notifications                            — Notification history
+  /orders                                   — Order history
+  /pricing                                  — Pricing plans
+  /pricing/checkout/[orderId]               — EFT checkout
+  /api/*                                    — API routes
 
 WHAT WAS BUILT (2026-06-14)
 
@@ -96,13 +93,12 @@ WHAT WAS BUILT (2026-06-14)
   - Instructor sidebar layout (Overview, My Courses, Import)
   - Seed script: 20 categories + 3 demo users
   - Instructor dashboard with stats (courses, students, revenue)
-  - Supabase-ready DATABASE_URL placeholder
+  - Supabase JS client for all DB access (service_role key, no direct postgres)
 
 NEXT STEPS
-  1. Create Supabase project → update DATABASE_URL in .env
-  2. npm run db:migrate
-  3. npm run dev
-  4. Discussions / Q&A per lesson
+  1. Create Supabase project → fill NEXT_PUBLIC_SUPABASE_URL, ANON_KEY, SERVICE_ROLE_KEY in .env
+  2. npm run dev
+  3. Discussions / Q&A per lesson
   5. Certificates on course completion
   6. Video upload (Cloudflare Stream / Mux)
   7. Payments (Stripe) — simple setup

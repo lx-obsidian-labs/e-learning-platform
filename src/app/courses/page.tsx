@@ -5,77 +5,42 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Input } from "@/components/ui/input"
+import { FilterBar } from "@/components/filter-bar"
 
 export const dynamic = "force-dynamic"
 
 export default async function CoursesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ category?: string; q?: string }>
+  searchParams: Promise<{ category?: string; q?: string; sort?: string; price?: string; rating?: string }>
 }) {
-  const { category: categorySlug, q: query } = await searchParams
-  const [courses, categories] = await Promise.all([
-    getPublishedCourses(),
+  const sp = await searchParams
+  const [categories, courses] = await Promise.all([
     getCategories(),
+    getPublishedCourses({
+      category: sp.category,
+      query: sp.q,
+      sort: sp.sort || "newest",
+      priceFilter: sp.price,
+      minRating: sp.rating ? Number(sp.rating) : 0,
+    }),
   ])
-
-  const filtered = courses.filter((course) => {
-    if (categorySlug && course.category?.slug !== categorySlug) return false
-    if (query) {
-      const q = query.toLowerCase()
-      const matchesTitle = course.title.toLowerCase().includes(q)
-      const matchesDesc = course.description?.toLowerCase().includes(q) ?? false
-      const matchesCat = course.category?.name.toLowerCase().includes(q) ?? false
-      if (!matchesTitle && !matchesDesc && !matchesCat) return false
-    }
-    return true
-  })
 
   return (
     <div className="min-h-screen pt-16 sm:pt-20">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 py-8 space-y-8">
-        <div className="space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div>
-              <h1 className="text-4xl font-bold tracking-tight">Explore Courses</h1>
-              <p className="text-muted-foreground mt-1">
-                Discover {filtered.length} course{filtered.length !== 1 ? "s" : ""} from expert instructors
-              </p>
-            </div>
-            <form className="relative w-full sm:w-72">
-              <svg className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
-              </svg>
-              <Input
-                name="q"
-                defaultValue={query ?? ""}
-                placeholder="Search courses..."
-                className="pl-9"
-              />
-            </form>
-          </div>
+        <FilterBar
+          categories={categories}
+          current={{
+            category: sp.category,
+            q: sp.q,
+            sort: sp.sort,
+            price: sp.price,
+            rating: sp.rating,
+          }}
+        />
 
-          <div className="flex flex-wrap gap-2">
-            <Link
-              href="/courses"
-              className={`inline-flex items-center rounded-full border px-4 py-1.5 text-sm transition-colors hover:bg-secondary ${!categorySlug ? "bg-primary text-primary-foreground border-primary" : ""}`}
-            >
-              All
-            </Link>
-            {categories.map((cat) => (
-              <Link
-                key={cat.id}
-                href={`/courses?category=${cat.slug}`}
-                className={`inline-flex items-center rounded-full border px-4 py-1.5 text-sm transition-colors hover:bg-secondary ${categorySlug === cat.slug ? "bg-primary text-primary-foreground border-primary" : ""}`}
-              >
-                {cat.name}
-              </Link>
-            ))}
-          </div>
-        </div>
-
-        {filtered.length === 0 ? (
+        {courses.length === 0 ? (
           <div className="text-center py-16 space-y-4">
             <div className="mx-auto h-16 w-16 rounded-full bg-muted flex items-center justify-center">
               <svg className="h-8 w-8 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
@@ -84,7 +49,7 @@ export default async function CoursesPage({
             </div>
             <h3 className="text-lg font-semibold">No courses found</h3>
             <p className="text-muted-foreground text-sm">
-              {query ? `No results for "${query}"` : "No courses in this category yet"}
+              {sp.q ? `No results for "${sp.q}"` : "No courses match your filters"}
             </p>
             <Button variant="outline" asChild>
               <Link href="/courses">Clear filters</Link>
@@ -92,7 +57,7 @@ export default async function CoursesPage({
           </div>
         ) : (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {filtered.map((course, idx) => {
+            {courses.map((course, idx) => {
               const colors = [
                 "from-blue-600 to-purple-600",
                 "from-emerald-600 to-teal-600",
@@ -106,14 +71,20 @@ export default async function CoursesPage({
               return (
                 <Link key={course.id} href={`/courses/${course.slug}`} className="group animate-fade-in" style={{ animationDelay: `${idx * 50}ms` }}>
                   <Card className="overflow-hidden card-hover h-full border-0 shadow-sm">
-                    <div className={`aspect-video bg-gradient-to-br ${gradient} flex items-center justify-center relative overflow-hidden`}>
-                      <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors" />
-                      <div className="thumbnail-overlay absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity" />
-                      <div className="h-16 w-16 rounded-full bg-white/30 backdrop-blur-sm flex items-center justify-center group-hover:scale-110 group-hover:bg-white/40 transition-all shadow-lg">
-                        <svg className="h-8 w-8 text-white ml-0.5" fill="currentColor" viewBox="0 0 24 24">
-                          <path d="M8 5v14l11-7z" />
-                        </svg>
-                      </div>
+                    <div className={`aspect-video relative overflow-hidden ${course.thumbnail ? "" : `bg-gradient-to-br ${gradient}`}`}>
+                      {course.thumbnail ? (
+                        <img src={course.thumbnail} alt={course.title} className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                      ) : (
+                        <>
+                          <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors" />
+                          <div className="thumbnail-overlay absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity" />
+                          <div className="h-16 w-16 rounded-full bg-white/30 backdrop-blur-sm flex items-center justify-center group-hover:scale-110 group-hover:bg-white/40 transition-all shadow-lg">
+                            <svg className="h-8 w-8 text-white ml-0.5" fill="currentColor" viewBox="0 0 24 24">
+                              <path d="M8 5v14l11-7z" />
+                            </svg>
+                          </div>
+                        </>
+                      )}
                       <Badge className="absolute top-3 left-3 bg-black/40 text-white border-0 backdrop-blur-sm">
                         {course.isFree ? "Free" : `$${Number(course.price).toFixed(2)}`}
                       </Badge>

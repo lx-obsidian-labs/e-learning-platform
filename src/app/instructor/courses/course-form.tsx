@@ -23,6 +23,7 @@ type Props = {
     isFree: boolean
     categoryId: string | null
     status: string
+    thumbnail?: string | null
   }
 }
 
@@ -100,6 +101,16 @@ export function CourseForm({ categories, initialData }: Props) {
             defaultValue={initialData?.price ?? 0}
           />
         </div>
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="thumbnail">Thumbnail URL</Label>
+        <Input
+          id="thumbnail"
+          name="thumbnail"
+          placeholder="https://example.com/image.jpg"
+          defaultValue={initialData?.thumbnail ?? ""}
+        />
       </div>
 
       <div className="flex items-center gap-2">

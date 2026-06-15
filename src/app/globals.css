@@ -132,6 +132,18 @@
 
 body {
   font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+  scroll-behavior: smooth;
+}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: hsl(var(--border)); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: hsl(var(--muted-foreground)); }
+
+::selection {
+  background: rgba(99, 102, 241, 0.2);
+  color: inherit;
 }
 
 /* ── Prem ium Keyframe Animations ── */
@@ -283,6 +295,20 @@ body {
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
 }
 
+.glass-card-strong {
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
+}
+
+.dark .glass-card-strong {
+  background: rgba(20, 20, 20, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
 .glass-nav {
   background: rgba(255, 255, 255, 0.72);
   backdrop-filter: blur(20px);
@@ -322,6 +348,17 @@ body {
 }
 
 /* ── Utilities ── */
+.text-balance { text-wrap: balance; }
+
+/* ── Scroll-triggered fade in (fallback if JS disabled) ── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
 .video-grid-placeholder {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 }
@@ -338,6 +375,24 @@ body {
 
 .thumbnail-overlay {
   background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 100%);
+}
+
+/* ── Focus Ring ── */
+:focus-visible {
+  outline: 2px solid rgba(99, 102, 241, 0.5);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ── Image Loading ── */
+.img-loading {
+  filter: blur(10px);
+  transform: scale(1.05);
+  transition: all 0.4s ease-out;
+}
+.img-loaded {
+  filter: blur(0);
+  transform: scale(1);
 }
 
 /* ── Premium Gradient Accents ── */

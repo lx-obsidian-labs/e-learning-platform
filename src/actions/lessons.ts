@@ -136,6 +136,71 @@ export async function updateLesson(lessonId: string, formData: FormData) {
   }
 }
 
+export async function reorderLesson(lessonId: string, direction: "up" | "down") {
+  const user = await getCurrentUserWithRole()
+  if (!user || user.role === "STUDENT") return { error: "Unauthorized" }
+
+  const supabase = createAdminClient()
+  const { data: lesson, error: lessonError } = await supabase
+    .from("lessons")
+    .select("*")
+    .eq('"id"', lessonId)
+    .single()
+
+  if (lessonError || !lesson) return { error: "Not found or unauthorized" }
+
+  const { data: mod } = await supabase
+    .from("modules")
+    .select('"courseId"')
+    .eq('"id"', lesson.moduleId)
+    .single()
+
+  if (!mod) return { error: "Not found or unauthorized" }
+
+  const { data: course } = await supabase
+    .from("courses")
+    .select('"instructorId"')
+    .eq('"id"', mod.courseId)
+    .single()
+
+  if (!course || (course.instructorId !== user.id && user.role !== "ADMIN")) {
+    return { error: "Not found or unauthorized" }
+  }
+
+  const { data: siblings } = await supabase
+    .from("lessons")
+    .select('"id","order"')
+    .eq('"moduleId"', lesson.moduleId)
+    .order('"order"', { ascending: true })
+
+  if (!siblings || siblings.length < 2) return { error: "No adjacent lesson" }
+
+  const currentIdx = siblings.findIndex((s) => s.id === lessonId)
+  if (currentIdx === -1) return { error: "Not found" }
+
+  const targetIdx = direction === "up" ? currentIdx - 1 : currentIdx + 1
+  if (targetIdx < 0 || targetIdx >= siblings.length) return { error: "Can't move further" }
+
+  const target = siblings[targetIdx]
+  const currentOrder = lesson.order
+  const targetOrder = target.order
+
+  const { error: e1 } = await supabase
+    .from("lessons")
+    .update({ order: targetOrder })
+    .eq('"id"', lessonId)
+
+  const { error: e2 } = await supabase
+    .from("lessons")
+    .update({ order: currentOrder })
+    .eq('"id"', target.id)
+
+  if (e1 || e2) return { error: "Failed to reorder" }
+
+  revalidatePath(`/instructor/courses/${mod.courseId}`)
+  return { success: true }
+}
+
 export async function deleteLesson(lessonId: string) {
   const user = await getCurrentUserWithRole()
   if (!user || user.role === "STUDENT") return { error: "Unauthorized" }
