@@ -61,9 +61,18 @@ export function Navbar() {
       setLoading(false)
     }
 
+    ;(async () => {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (session?.user) {
+        fetchUser(session.user)
+      } else {
+        setLoading(false)
+      }
+    })()
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (session?.user) {
-        if (event === "INITIAL_SESSION" || event === "SIGNED_IN" || event === "TOKEN_REFRESHED") {
+        if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED") {
           fetchUser(session.user)
         }
       } else if (event === "SIGNED_OUT") {
