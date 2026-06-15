@@ -10,7 +10,13 @@ export async function POST(request: NextRequest) {
 
   const admin = createAdminClient()
   // delete chats older than 1 day
-  const { error } = await admin.rpc('delete_ai_chats_older_than', { p_days: 1 }).catch(() => ({ error: true }))
+  let error: any = true
+  try {
+    const result = await admin.rpc('delete_ai_chats_older_than', { p_days: 1 })
+    error = result.error
+  } catch {
+    error = true
+  }
   if (error) {
     // fallback to SQL delete
     const res = await admin.from('ai_chats').delete().lt('"createdAt"', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
