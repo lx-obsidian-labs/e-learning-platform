@@ -109,6 +109,17 @@ async function fetchFreeCodeCampCourses(): Promise<ExternalCourse[]> {
 
 // ─── Aggregator ────────────────────────────────────────────────
 
+const STATIC_EXTERNAL_COURSES: ExternalCourse[] = [
+  { title: "HTML & CSS for Beginners", description: "Learn the fundamentals of HTML5 and CSS3. Build responsive, accessible websites from scratch with modern layout techniques like Flexbox and Grid.", url: "https://example.com/html-css", platform: "freecodecamp", sourceId: "static_html_css", instructor: "freeCodeCamp", category: "Web Development", lessons: [{ title: "HTML Basics", videoUrl: "https://www.youtube.com/embed/ok-plXXHlWw" }, { title: "CSS Fundamentals", videoUrl: "https://www.youtube.com/embed/yfoY53QXEnI" }] },
+  { title: "JavaScript Algorithms & Data Structures", description: "Master JavaScript fundamentals, ES6+, data structures, and algorithms. Build projects and prepare for technical interviews.", url: "https://example.com/js-algos", platform: "freecodecamp", sourceId: "static_js_algos", instructor: "freeCodeCamp", category: "Programming", lessons: [{ title: "JavaScript Basics", videoUrl: "https://www.youtube.com/embed/W6NZfCO5SIk" }, { title: "Data Structures", videoUrl: "https://www.youtube.com/embed/R-HLU9Fl5ug" }] },
+  { title: "Responsive Web Design", description: "Learn responsive design principles, CSS media queries, and mobile-first development. Create websites that work on any device.", url: "https://example.com/responsive", platform: "freecodecamp", sourceId: "static_responsive", instructor: "freeCodeCamp", category: "Web Development", lessons: [{ title: "Design Principles", videoUrl: "https://www.youtube.com/embed/srvUrASNj0s" }] },
+  { title: "Python for Data Analysis", description: "Use Python, Pandas, NumPy, and Matplotlib to analyze and visualize data. Real-world datasets and hands-on projects included.", url: "https://example.com/python-data", platform: "freecodecamp", sourceId: "static_python_data", instructor: "freeCodeCamp", category: "Data Science", lessons: [{ title: "Python Basics", videoUrl: "https://www.youtube.com/embed/kqtD5dpn9C8" }, { title: "Data Analysis", videoUrl: "https://www.youtube.com/embed/vmEHCJofslg" }] },
+  { title: "Front End Libraries", description: "Learn React, Redux, jQuery, Bootstrap, and SASS. Build modern, interactive user interfaces with popular front-end libraries.", url: "https://example.com/frontend-libs", platform: "freecodecamp", sourceId: "static_frontend", instructor: "freeCodeCamp", category: "Web Development", lessons: [{ title: "React Basics", videoUrl: "https://www.youtube.com/embed/Ke90Tje7VS0" }] },
+  { title: "API Development with Node.js", description: "Build RESTful APIs with Node.js, Express, and MongoDB. Learn authentication, error handling, testing, and deployment.", url: "https://example.com/node-api", platform: "freecodecamp", sourceId: "static_node_api", instructor: "freeCodeCamp", category: "Web Development", lessons: [{ title: "Node.js Basics", videoUrl: "https://www.youtube.com/embed/Oe421EPjeBE" }] },
+  { title: "Introduction to SQL", description: "Master SQL queries: SELECT, JOIN, GROUP BY, subqueries, and window functions. Work with real databases and optimize query performance.", url: "https://example.com/sql", platform: "openstax", sourceId: "static_sql", instructor: "OpenStax", category: "Database Design", lessons: [{ title: "SQL Basics", videoUrl: "https://www.youtube.com/embed/7S_tz1z_5bA" }] },
+  { title: "Linear Algebra for Machine Learning", description: "Understand vectors, matrices, eigenvalues, and linear transformations. Essential mathematics for machine learning and data science.", url: "https://example.com/linear-algebra", platform: "khan_academy", sourceId: "static_linear_algebra", instructor: "Khan Academy", category: "Mathematics", lessons: [{ title: "Vectors", videoUrl: "https://www.youtube.com/embed/fNk_zzaMoSs" }] },
+]
+
 export async function searchExternalCourses(query?: string): Promise<ExternalCourse[]> {
   const sources = [
     fetchKhanCourses(),
@@ -117,7 +128,8 @@ export async function searchExternalCourses(query?: string): Promise<ExternalCou
     fetchFreeCodeCampCourses(),
   ]
 
-  const results = (await Promise.all(sources)).flat()
+  const live = (await Promise.all(sources)).flat()
+  const results = live.length > 0 ? live : STATIC_EXTERNAL_COURSES
 
   if (query) {
     const q = query.toLowerCase()

@@ -113,6 +113,17 @@ export async function importEdxCourse(courseId: string) {
   }
 }
 
+const STATIC_EDX_COURSES = [
+  { id: "edx_static_1", title: "Introduction to Computer Science", description: "Learn the fundamentals of computer science, algorithms, and data structures. Covers programming basics, computational thinking, and problem-solving techniques.", instructor: "Harvard University", videoUrl: "https://www.youtube.com/embed/8mAITcNt710" },
+  { id: "edx_static_2", title: "Calculus 1A: Differentiation", description: "Master differential calculus: limits, derivatives, and their applications. Essential for science, engineering, and mathematics students.", instructor: "MIT", videoUrl: "https://www.youtube.com/embed/7K1sB05pE0A" },
+  { id: "edx_static_3", title: "CS50's Web Programming with Python and JavaScript", description: "Build and deploy web applications using Python, Django, JavaScript, and React. Covers databases, APIs, security, and scalability.", instructor: "Harvard University", videoUrl: "https://www.youtube.com/embed/vqn8BYLvM5o" },
+  { id: "edx_static_4", title: "Data Science: Machine Learning", description: "Build machine learning models with Python. Covers regression, classification, clustering, neural networks, and model evaluation techniques.", instructor: "UC Berkeley", videoUrl: "https://www.youtube.com/embed/JcI5E2Ng6r4" },
+  { id: "edx_static_5", title: "The Science of Well-Being", description: "Explore the science of happiness and well-being. Learn evidence-based strategies to improve your life satisfaction and mental health.", instructor: "Yale University", videoUrl: "https://www.youtube.com/embed/qzR62JJCMBQ" },
+  { id: "edx_static_6", title: "Blockchain for Business", description: "Understand blockchain technology, cryptocurrencies, smart contracts, and their applications in business and finance.", instructor: "The Linux Foundation", videoUrl: "https://www.youtube.com/embed/6WG7D47tGb0" },
+  { id: "edx_static_7", title: "AWS Cloud Technical Essentials", description: "Learn AWS cloud fundamentals: compute, storage, networking, databases, and security. Prepare for the AWS Certified Cloud Practitioner exam.", instructor: "AWS", videoUrl: "https://www.youtube.com/embed/ulprqHHWlng" },
+  { id: "edx_static_8", title: "Cybersecurity Fundamentals", description: "Master network security, cryptography, threat detection, risk management, and incident response. Essential for cybersecurity professionals.", instructor: "Rochester Institute of Technology", videoUrl: "https://www.youtube.com/embed/bPVaOlJ-WNk" },
+]
+
 export async function searchEdxCourses(query?: string) {
   const user = await getCurrentUserWithRole()
   if (!user || user.role === "STUDENT") return []
@@ -120,17 +131,25 @@ export async function searchEdxCourses(query?: string) {
   try {
     const provider = new OpenEdxProvider()
     const courses = await provider.searchCourses(query)
-    return courses.map((c) => ({
-      id: c.id,
-      providerCourseId: c.providerCourseId,
-      title: c.title,
-      description: c.description,
-      thumbnail: c.thumbnail,
-      instructor: c.instructor,
-      videoUrl: c.videoUrl,
-      url: c.url,
-    }))
+    if (courses.length > 0) {
+      return courses.map((c) => ({
+        id: c.id,
+        providerCourseId: c.providerCourseId,
+        title: c.title,
+        description: c.description,
+        thumbnail: c.thumbnail,
+        instructor: c.instructor,
+        videoUrl: c.videoUrl,
+        url: c.url,
+      }))
+    }
   } catch {
-    return []
+    // API unavailable — fall through to static catalog
   }
+
+  if (!query) return STATIC_EDX_COURSES
+  const q = query.toLowerCase()
+  return STATIC_EDX_COURSES.filter(
+    (c) => c.title.toLowerCase().includes(q) || c.description.toLowerCase().includes(q)
+  )
 }
