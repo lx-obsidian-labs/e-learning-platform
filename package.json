@@ -8,7 +8,10 @@
     "start": "next start",
     "lint": "eslint",
     "seed:auth": "node scripts/seed-auth.js",
-    "seed:courses": "node scripts/seed-courses.js"
+    "seed:courses": "node scripts/seed-courses.js",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.0",
@@ -40,6 +43,7 @@
     "eslint-config-next": "16.2.9",
     "tailwindcss": "^4",
     "tsx": "^4.22.4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^4.1.9"
   }
 }
