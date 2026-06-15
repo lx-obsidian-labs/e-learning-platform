@@ -24,7 +24,9 @@ type Props = {
 }
 
 type Result = {
-  attempt: { id: string; score: number; total: number }
+  id: string
+  score: number
+  total: number
 } | null
 
 export function QuizForm({ quizId, questions }: Props) {
@@ -48,8 +50,8 @@ export function QuizForm({ quizId, questions }: Props) {
     })
 
     const res = await submitQuizAttempt(quizId, formatted)
-    if (res.success) {
-      setResult(res.attempt)
+    if (res.success && res.attempt) {
+      setResult({ id: res.attempt.id, score: res.attempt.score, total: res.attempt.total })
       toast.success("Quiz submitted!")
       router.refresh()
     } else {
@@ -59,7 +61,7 @@ export function QuizForm({ quizId, questions }: Props) {
   }
 
   if (result) {
-    const percentage = Math.round((result.attempt.score / result.attempt.total) * 100)
+    const percentage = Math.round((result.score / result.total) * 100)
     return (
       <Card>
         <CardHeader>
@@ -69,7 +71,7 @@ export function QuizForm({ quizId, questions }: Props) {
           <div className="text-center py-6">
             <p className="text-5xl font-bold">{percentage}%</p>
             <p className="text-muted-foreground mt-2">
-              {result.attempt.score} / {result.attempt.total} points
+              {result.score} / {result.total} points
             </p>
           </div>
           <div className="flex gap-3">
