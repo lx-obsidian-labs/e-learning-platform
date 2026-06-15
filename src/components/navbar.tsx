@@ -50,7 +50,7 @@ export function Navbar() {
       const { data: profile } = await supabase
         .from("users")
         .select("name, role")
-        .eq("id", authUser.id)
+        .eq('"id"', authUser.id)
         .maybeSingle()
       setUser({
         id: authUser.id,
