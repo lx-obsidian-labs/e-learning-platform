@@ -30,12 +30,18 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`}>
+    <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`} suppressHydrationWarning>
       <body className="min-h-screen bg-background antialiased">
         <Providers>
-          <Navbar />
-          <main>{children}</main>
-          <Footer />
+          <div className="relative">
+            <div className="fixed inset-0 pointer-events-none overflow-hidden -z-10">
+              <div className="ambient-orb ambient-orb-1" />
+              <div className="ambient-orb ambient-orb-2" />
+            </div>
+            <Navbar />
+            <main>{children}</main>
+            <Footer />
+          </div>
         </Providers>
       </body>
     </html>
