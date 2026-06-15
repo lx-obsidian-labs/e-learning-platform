@@ -38,7 +38,7 @@ export async function proxy(request: NextRequest) {
     const { data: profile } = await supabase
       .from("users")
       .select("role")
-      .eq("id", user.id)
+      .eq('"id"', user.id)
       .maybeSingle()
 
     if (profile) {
@@ -51,6 +51,10 @@ export async function proxy(request: NextRequest) {
   }
 
   if (user && role === "STUDENT" && (path.startsWith("/instructor") || path.startsWith("/admin"))) {
+    return NextResponse.redirect(new URL("/dashboard", request.url))
+  }
+
+  if (user && role === "INSTRUCTOR" && path.startsWith("/admin")) {
     return NextResponse.redirect(new URL("/dashboard", request.url))
   }
 
