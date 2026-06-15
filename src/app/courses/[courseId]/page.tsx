@@ -109,8 +109,9 @@ export default async function CourseDetailPage({
   const gradientIdx = course.title.length % gradientClasses.length
 
   return (
-    <div className="space-y-8 pt-16 sm:pt-20">
-      <div className={`rounded-xl bg-gradient-to-br ${gradientClasses[gradientIdx]} p-8 text-white relative overflow-hidden`}>
+    <div className="min-h-screen pt-16 sm:pt-20">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 py-8 space-y-8">
+        <div className={`rounded-xl bg-gradient-to-br ${gradientClasses[gradientIdx]} p-8 sm:p-12 text-white relative overflow-hidden`}>
         <div className="absolute inset-0 bg-black/20" />
         <div className="absolute -top-20 -right-20 w-64 h-64 bg-white/10 rounded-full blur-3xl" />
         <div className="absolute -bottom-20 -left-20 w-48 h-48 bg-white/5 rounded-full blur-3xl" />
@@ -368,15 +369,16 @@ export default async function CourseDetailPage({
         </div>
       </div>
 
-      <ReviewSection
-        courseId={course.id}
-        reviews={(reviews || []).map((r: any) => ({
-          ...r,
-          isOwn: r.user.name === instructor?.name,
-        }))}
-        canReview={enrolled}
-        userReview={userReview ? { ...userReview, isOwn: true } : null}
-      />
+        <ReviewSection
+          courseId={course.id}
+          reviews={(reviews || []).map((r: any) => ({
+            ...r,
+            isOwn: r.user.name === instructor?.name,
+          }))}
+          canReview={enrolled}
+          userReview={userReview ? { ...userReview, isOwn: true } : null}
+        />
+      </div>
     </div>
   )
 }

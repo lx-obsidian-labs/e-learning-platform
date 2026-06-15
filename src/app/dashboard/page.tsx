@@ -64,20 +64,21 @@ export default async function DashboardPage() {
   }, 0)
 
   return (
-    <div className="space-y-8 pt-16 sm:pt-20">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">
-            Welcome back, {displayName}
-          </h1>
-          <p className="text-muted-foreground mt-1">Track your learning progress</p>
+    <div className="min-h-screen pt-16 sm:pt-20">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 py-8 space-y-8">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">
+              Welcome back, {displayName}
+            </h1>
+            <p className="text-muted-foreground mt-1">Track your learning progress</p>
+          </div>
+          <Button asChild>
+            <Link href="/courses">Browse Courses</Link>
+          </Button>
         </div>
-        <Button asChild>
-          <Link href="/courses">Browse Courses</Link>
-        </Button>
-      </div>
 
-      <div className="grid gap-4 md:grid-cols-4">
+        <div className="grid gap-4 md:grid-cols-4">
         <Card className="border-l-4 border-l-blue-500">
           <CardContent className="py-4">
             <div className="flex items-center justify-between">
@@ -244,6 +245,7 @@ export default async function DashboardPage() {
           </div>
         </div>
       )}
+      </div>
     </div>
   )
 }

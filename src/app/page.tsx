@@ -66,6 +66,15 @@ const testimonials = [
   },
 ]
 
+const featuredGradients = [
+  "from-blue-600 to-purple-600",
+  "from-emerald-600 to-teal-600",
+  "from-orange-600 to-red-600",
+  "from-pink-600 to-rose-600",
+  "from-indigo-600 to-blue-600",
+  "from-teal-600 to-cyan-600",
+]
+
 export default async function HomePage() {
   const courses = await getPublishedCourses()
   const featured = courses.slice(0, 6)
@@ -112,13 +121,13 @@ export default async function HomePage() {
               </Button>
             </div>
 
-            <div className="mt-12 grid grid-cols-2 sm:grid-cols-4 gap-6 max-w-2xl mx-auto animate-slide-up" style={{ animationDelay: "0.3s" }}>
+            <div className="mt-12 grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6 max-w-3xl mx-auto animate-slide-up" style={{ animationDelay: "0.3s" }}>
               {stats.map((s) => (
-                <div key={s.label} className="text-center p-3 rounded-xl bg-background/50 backdrop-blur-sm border border-border/50">
+                <div key={s.label} className="text-center p-4 sm:p-5 rounded-xl bg-background/60 backdrop-blur-sm border border-border/50 hover:border-primary/20 hover:shadow-lg hover:shadow-primary/5 transition-all duration-300">
                   <div className="text-2xl sm:text-3xl font-bold gradient-text bg-gradient-to-r from-primary to-primary/60">
                     {s.value}
                   </div>
-                  <div className="text-xs text-muted-foreground mt-0.5">{s.label}</div>
+                  <div className="text-xs text-muted-foreground mt-1">{s.label}</div>
                 </div>
               ))}
             </div>
@@ -181,10 +190,10 @@ export default async function HomePage() {
             </div>
 
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {featured.map((course) => (
+              {featured.map((course, idx) => (
                 <Link key={course.id} href={`/courses/${course.slug}`} className="group">
                   <Card className="overflow-hidden card-hover h-full border-border/50">
-                    <div className="aspect-video bg-gradient-to-br from-primary/20 via-primary/10 to-primary/5 flex items-center justify-center relative">
+                    <div className={`aspect-video bg-gradient-to-br ${featuredGradients[idx % featuredGradients.length]} flex items-center justify-center relative`}>
                       <div className="thumbnail-overlay absolute inset-0" />
                       <div className="h-16 w-16 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center group-hover:scale-110 group-hover:bg-white/30 transition-all">
                         <svg className="h-8 w-8 text-white ml-0.5" fill="currentColor" viewBox="0 0 24 24">

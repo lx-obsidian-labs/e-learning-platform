@@ -89,6 +89,7 @@ export class KhanAcademyProvider implements CourseProvider {
       language: "en",
       level: "all",
       url: `https://www.khanacademy.org${t.url || ""}`,
+      videoUrl: (t as any).videoUrl || undefined,
     }
   }
 

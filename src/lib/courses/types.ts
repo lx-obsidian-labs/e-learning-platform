@@ -10,6 +10,7 @@ export interface Course {
   language: string
   level: "beginner" | "intermediate" | "advanced" | "all"
   url?: string
+  videoUrl?: string
 }
 
 export interface Section {

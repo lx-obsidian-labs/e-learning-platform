@@ -34,7 +34,7 @@ export default async function InstructorLayout({
   }
 
   return (
-    <div className="flex min-h-[calc(100vh-4rem)]">
+    <div className="flex min-h-screen">
       <aside className="hidden md:flex w-64 flex-col border-r bg-muted/30 p-4 gap-2">
         {navItems.map((item) => (
           <Button
@@ -47,7 +47,7 @@ export default async function InstructorLayout({
           </Button>
         ))}
       </aside>
-      <main className="flex-1 p-6">
+      <main className="flex-1 p-4 sm:p-6">
         {children}
       </main>
     </div>

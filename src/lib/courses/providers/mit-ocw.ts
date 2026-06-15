@@ -89,6 +89,7 @@ export class MITOCWProvider implements CourseProvider {
       language: "en",
       level: "all",
       url: `https://ocw.mit.edu/courses/${c.id}/`,
+      videoUrl: (c as any).videoUrl || undefined,
     }
   }
 

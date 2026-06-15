@@ -94,6 +94,7 @@ export class OpenLearnProvider implements CourseProvider {
       language: c.language || "en",
       level: "all",
       url: c.href || `https://www.open.edu/openlearn/ocw/course/${c.id}`,
+      videoUrl: (c as any).videoUrl || undefined,
     }
   }
 
