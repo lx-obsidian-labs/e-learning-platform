@@ -33,7 +33,7 @@ export async function seedFreeCourses() {
     }
 
     const result = await importExternalCourse(course, user.id, catId)
-    if (result.error) {
+    if ("error" in result) {
       skipped++
     } else {
       imported++
