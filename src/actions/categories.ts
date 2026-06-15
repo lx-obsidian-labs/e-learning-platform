@@ -1,6 +1,7 @@
 "use server"
 
 import { createAdminClient } from "@/lib/supabase/admin"
+import { randomUUID } from "crypto"
 
 export async function getCategories() {
   const supabase = createAdminClient()
@@ -47,12 +48,12 @@ export async function seedCategories() {
     if (existing) {
       await supabase
         .from("categories")
-        .update({ name: cat.name })
+        .update({ name: cat.name, updatedAt: new Date().toISOString() })
         .eq('"slug"', cat.slug)
     } else {
       await supabase
         .from("categories")
-        .insert(cat)
+        .insert({ id: randomUUID(), ...cat, updatedAt: new Date().toISOString() })
     }
   }
 }

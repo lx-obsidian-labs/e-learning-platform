@@ -6,14 +6,18 @@ import { revalidatePath } from "next/cache"
 import { parseJSONCourses, parseCSVCourses, validateCourse } from "@/lib/course-importer"
 import type { ImportedCourse, ImportedQuiz } from "@/lib/course-importer"
 
+import { randomUUID } from "crypto"
+
 function slugify(text: string) {
   return text.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "")
 }
 
+const now = () => new Date().toISOString()
+
 async function importQuiz(admin: ReturnType<typeof createAdminClient>, moduleId: string, quiz: ImportedQuiz) {
   const { data: quizRecord, error: quizErr } = await admin
     .from("quizzes")
-    .insert({ title: quiz.title, description: quiz.description || null, passingScore: quiz.passingScore || null, moduleId })
+    .insert({ id: randomUUID(), title: quiz.title, description: quiz.description || null, passingScore: quiz.passingScore || null, moduleId })
     .select('"id"')
     .single()
 
@@ -23,13 +27,13 @@ async function importQuiz(admin: ReturnType<typeof createAdminClient>, moduleId:
     const q = quiz.questions[qi]
     const { data: questionRecord } = await admin
       .from("quiz_questions")
-      .insert({ text: q.text, type: q.type, points: q.points || 1, order: qi + 1, quizId: quizRecord.id })
+      .insert({ id: randomUUID(), text: q.text, type: q.type, points: q.points || 1, order: qi + 1, quizId: quizRecord.id })
       .select('"id"')
       .single()
 
     if (questionRecord && q.options) {
       for (const opt of q.options) {
-        await admin.from("quiz_answer_options").insert({ text: opt.text, isCorrect: opt.isCorrect, questionId: questionRecord.id })
+        await admin.from("quiz_answer_options").insert({ id: randomUUID(), text: opt.text, isCorrect: opt.isCorrect, questionId: questionRecord.id })
       }
     }
   }
@@ -81,7 +85,7 @@ export async function importCourses(raw: string, format: "json" | "csv") {
       if (cat) {
         categoryId = cat.id
       } else {
-        const { data: newCat } = await admin.from("categories").insert({ name: course.category, slug: catSlug }).select('"id"').single()
+        const { data: newCat } = await admin.from("categories").insert({ id: randomUUID(), name: course.category, slug: catSlug, updatedAt: now() }).select('"id"').single()
         if (newCat) categoryId = newCat.id
       }
     }
@@ -89,6 +93,7 @@ export async function importCourses(raw: string, format: "json" | "csv") {
     const { data: newCourse, error: courseErr } = await admin
       .from("courses")
       .insert({
+        id: randomUUID(),
         title: course.title,
         slug,
         description: course.description,
@@ -98,6 +103,7 @@ export async function importCourses(raw: string, format: "json" | "csv") {
         categoryId,
         instructorId: user.id,
         status: "PUBLISHED",
+        updatedAt: now(),
       })
       .select('"id"')
       .single()
@@ -110,9 +116,10 @@ export async function importCourses(raw: string, format: "json" | "csv") {
     let importFailed = false
     for (let mi = 0; mi < course.modules.length; mi++) {
       const mod = course.modules[mi]
+      const modId = randomUUID()
       const { data: newModule, error: modErr } = await admin
         .from("modules")
-        .insert({ title: mod.title, description: mod.description || null, order: mi + 1, courseId: newCourse.id })
+        .insert({ id: modId, title: mod.title, description: mod.description || null, order: mi + 1, courseId: newCourse.id })
         .select('"id"')
         .single()
 
@@ -123,6 +130,7 @@ export async function importCourses(raw: string, format: "json" | "csv") {
         const { error: lessonErr } = await admin
           .from("lessons")
           .insert({
+            id: randomUUID(),
             title: lesson.title,
             content: lesson.content || null,
             videoUrl: lesson.videoUrl || null,
@@ -130,6 +138,7 @@ export async function importCourses(raw: string, format: "json" | "csv") {
             isPreviewable: lesson.isPreviewable || false,
             order: li + 1,
             moduleId: newModule.id,
+            updatedAt: now(),
           })
 
         if (lessonErr) { importFailed = true; break }
