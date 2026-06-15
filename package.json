@@ -7,9 +7,7 @@
     "build": "next build --webpack",
     "start": "next start",
     "lint": "eslint",
-    "db:migrate": "prisma migrate dev",
-    "db:seed": "prisma db seed",
-    "db:reset": "prisma migrate reset --force"
+    "seed:auth": "node scripts/seed-auth.js"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.0",
