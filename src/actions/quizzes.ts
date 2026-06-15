@@ -410,7 +410,7 @@ export async function submitQuizAttempt(
 
     for (const a of answers) {
       const { error: ansError } = await supabase
-        .from("quiz_answers")
+        .from("quiz_user_answers")
         .insert({
           attemptId: attempt.id,
           questionId: a.questionId,
@@ -443,7 +443,7 @@ export async function getQuizAttempts(quizId: string) {
   const attemptsWithAnswers = await Promise.all(
     (attempts || []).map(async (attempt) => {
       const { data: answers } = await supabase
-        .from("quiz_answers")
+        .from("quiz_user_answers")
         .select("*")
         .eq('"attemptId"', attempt.id)
       return { ...attempt, answers: answers || [] }
