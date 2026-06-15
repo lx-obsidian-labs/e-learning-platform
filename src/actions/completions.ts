@@ -1,70 +1,110 @@
 "use server"
 
-import { prisma } from "@/lib/prisma"
-import { auth } from "@/lib/auth"
+import { createAdminClient } from "@/lib/supabase/admin"
+import { getCurrentUserWithRole } from "@/actions/auth"
 import { revalidatePath } from "next/cache"
 
 export async function markLessonComplete(lessonId: string) {
-  const session = await auth()
-  if (!session?.user) return { error: "Not authenticated" }
+  const user = await getCurrentUserWithRole()
+  if (!user) return { error: "Not authenticated" }
 
-  const lesson = await prisma.lesson.findUnique({
-    where: { id: lessonId },
-    include: {
-      module: {
-        include: { course: true },
-      },
-    },
-  })
-  if (!lesson) return { error: "Lesson not found" }
+  const supabase = createAdminClient()
 
-  const enrollment = await prisma.enrollment.findUnique({
-    where: {
-      userId_courseId: {
-        userId: session.user.id,
-        courseId: lesson.module.courseId,
-      },
-    },
-  })
+  const { data: lesson, error: lessonError } = await supabase
+    .from("lessons")
+    .select("*")
+    .eq('"id"', lessonId)
+    .single()
+
+  if (lessonError || !lesson) return { error: "Lesson not found" }
+
+  const { data: mod } = await supabase
+    .from("modules")
+    .select('"courseId"')
+    .eq('"id"', lesson.moduleId)
+    .single()
+
+  if (!mod) return { error: "Lesson not found" }
+
+  const { data: course } = await supabase
+    .from("courses")
+    .select('"slug"')
+    .eq('"id"', mod.courseId)
+    .single()
+
+  const { data: enrollment } = await supabase
+    .from("enrollments")
+    .select('"id"')
+    .eq('"userId"', user.id)
+    .eq('"courseId"', mod.courseId)
+    .maybeSingle()
+
   if (!enrollment) return { error: "Not enrolled in this course" }
 
   try {
-    await prisma.lessonCompletion.upsert({
-      where: {
-        userId_lessonId: {
-          userId: session.user.id,
-          lessonId,
-        },
-      },
-      update: {},
-      create: {
-        userId: session.user.id,
-        lessonId,
-      },
-    })
+    const { data: existing } = await supabase
+      .from("lesson_completions")
+      .select('"id"')
+      .eq('"userId"', user.id)
+      .eq('"lessonId"', lessonId)
+      .maybeSingle()
 
-    const totalLessons = await prisma.lesson.count({
-      where: { module: { courseId: lesson.module.courseId } },
-    })
-    const completedLessons = await prisma.lessonCompletion.count({
-      where: {
-        userId: session.user.id,
-        lesson: { module: { courseId: lesson.module.courseId } },
-      },
-    })
+    if (!existing) {
+      const { error: insertError } = await supabase
+        .from("lesson_completions")
+        .insert({ userId: user.id, lessonId })
 
-    const progress = totalLessons > 0
-      ? Math.round((completedLessons / totalLessons) * 100)
+      if (insertError) return { error: "Failed to mark lesson complete" }
+    }
+
+    const { data: allModules } = await supabase
+      .from("modules")
+      .select('"id"')
+      .eq('"courseId"', mod.courseId)
+
+    const moduleIds = (allModules || []).map((m) => m.id)
+
+    let total = 0
+    let completed = 0
+
+    if (moduleIds.length > 0) {
+      const { count: tc } = await supabase
+        .from("lessons")
+        .select("*", { count: "exact", head: true })
+        .in('"moduleId"', moduleIds)
+      total = tc || 0
+
+      const { data: allLessonIds } = await supabase
+        .from("lessons")
+        .select('"id"')
+        .in('"moduleId"', moduleIds)
+
+      const lessonIdList = (allLessonIds || []).map((l) => l.id)
+
+      if (lessonIdList.length > 0) {
+        const { count: cc } = await supabase
+          .from("lesson_completions")
+          .select("*", { count: "exact", head: true })
+          .eq('"userId"', user.id)
+          .in('"lessonId"', lessonIdList)
+        completed = cc || 0
+      }
+    }
+
+    const progress = total > 0
+      ? Math.round((completed / total) * 100)
       : 0
 
     const newStatus = progress === 100 ? "COMPLETED" : "IN_PROGRESS"
 
-    await prisma.enrollment.update({
-      where: { id: enrollment.id },
-      data: { progress, status: newStatus },
-    })
+    const { error: updateError } = await supabase
+      .from("enrollments")
+      .update({ progress, status: newStatus })
+      .eq('"id"', enrollment.id)
 
-    revalidatePath(`/courses/${lesson.module.course.slug}/lessons/${lessonId}`)
+    if (updateError) return { error: "Failed to mark lesson complete" }
+
+    revalidatePath(`/courses/${course?.slug || mod.courseId}/lessons/${lessonId}`)
     revalidatePath("/dashboard")
     return { success: true, progress }
   } catch {
@@ -73,15 +113,34 @@ export async function markLessonComplete(lessonId: string) {
 }
 
 export async function getCompletedLessonIds(courseId: string) {
-  const session = await auth()
-  if (!session?.user) return []
+  const user = await getCurrentUserWithRole()
+  if (!user) return []
 
-  const completions = await prisma.lessonCompletion.findMany({
-    where: {
-      userId: session.user.id,
-      lesson: { module: { courseId } },
-    },
-    select: { lessonId: true },
-  })
-  return completions.map((c) => c.lessonId)
+  const supabase = createAdminClient()
+
+  const { data: modules } = await supabase
+    .from("modules")
+    .select('"id"')
+    .eq('"courseId"', courseId)
+
+  if (!modules || modules.length === 0) return []
+
+  const moduleIds = modules.map((m) => m.id)
+
+  const { data: lessons } = await supabase
+    .from("lessons")
+    .select('"id"')
+    .in('"moduleId"', moduleIds)
+
+  if (!lessons || lessons.length === 0) return []
+
+  const lessonIds = lessons.map((l) => l.id)
+
+  const { data: completions } = await supabase
+    .from("lesson_completions")
+    .select('"lessonId"')
+    .eq('"userId"', user.id)
+    .in('"lessonId"', lessonIds)
+
+  return (completions || []).map((c) => c.lessonId)
 }

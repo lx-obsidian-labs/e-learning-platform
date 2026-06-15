@@ -1,7 +1,7 @@
 "use server"
 
-import { prisma } from "@/lib/prisma"
-import { auth } from "@/lib/auth"
+import { createAdminClient } from "@/lib/supabase/admin"
+import { getCurrentUserWithRole } from "@/actions/auth"
 import { revalidatePath } from "next/cache"
 import { z } from "zod"
 
@@ -19,9 +19,9 @@ const updateCourseSchema = createCourseSchema.partial().extend({
 })
 
 export async function createCourse(formData: FormData) {
-  const session = await auth()
+  const user = await getCurrentUserWithRole()
 
-  if (!session?.user || session.user.role === "STUDENT") {
+  if (!user || user.role === "STUDENT") {
     return { error: "Unauthorized" }
   }
 
@@ -38,9 +38,11 @@ export async function createCourse(formData: FormData) {
     return { error: parsed.error.flatten().fieldErrors }
   }
 
+  const supabase = createAdminClient()
   try {
-    const course = await prisma.course.create({
-      data: {
+    const { data: course, error } = await supabase
+      .from("courses")
+      .insert({
         title: parsed.data.title,
         slug: parsed.data.title
           .toLowerCase()
@@ -50,29 +52,36 @@ export async function createCourse(formData: FormData) {
         price: parsed.data.price,
         isFree: parsed.data.isFree,
         categoryId: parsed.data.categoryId,
-        instructorId: session.user.id,
-      },
-    })
+        instructorId: user.id,
+      })
+      .select("*")
+      .single()
+
+    if (error) return { error: "Failed to create course" }
 
     revalidatePath("/instructor/courses")
     return { success: true, course }
-  } catch (error) {
+  } catch {
     return { error: "Failed to create course" }
   }
 }
 
 export async function updateCourse(courseId: string, formData: FormData) {
-  const session = await auth()
+  const user = await getCurrentUserWithRole()
 
-  if (!session?.user || session.user.role === "STUDENT") {
+  if (!user || user.role === "STUDENT") {
     return { error: "Unauthorized" }
   }
 
-  const course = await prisma.course.findUnique({
-    where: { id: courseId },
-  })
+  const supabase = createAdminClient()
+  const { data: course, error: findError } = await supabase
+    .from("courses")
+    .select("*")
+    .eq('"id"', courseId)
+    .single()
 
-  if (!course || (course.instructorId !== session.user.id && session.user.role !== "ADMIN")) {
+  if (findError || !course) return { error: "Not found or unauthorized" }
+  if (course.instructorId !== user.id && user.role !== "ADMIN") {
     return { error: "Not found or unauthorized" }
   }
 
@@ -95,10 +104,14 @@ export async function updateCourse(courseId: string, formData: FormData) {
   }
 
   try {
-    const updated = await prisma.course.update({
-      where: { id: courseId },
-      data: parsed.data,
-    })
+    const { data: updated, error } = await supabase
+      .from("courses")
+      .update(parsed.data)
+      .eq('"id"', courseId)
+      .select("*")
+      .single()
+
+    if (error) return { error: "Failed to update course" }
 
     revalidatePath("/instructor/courses")
     revalidatePath(`/courses/${course.slug}`)
@@ -109,25 +122,31 @@ export async function updateCourse(courseId: string, formData: FormData) {
 }
 
 export async function deleteCourse(courseId: string) {
-  const session = await auth()
+  const user = await getCurrentUserWithRole()
 
-  if (!session?.user || session.user.role === "STUDENT") {
+  if (!user || user.role === "STUDENT") {
     return { error: "Unauthorized" }
   }
 
-  const course = await prisma.course.findUnique({
-    where: { id: courseId },
-  })
+  const supabase = createAdminClient()
+  const { data: course, error: findError } = await supabase
+    .from("courses")
+    .select("*")
+    .eq('"id"', courseId)
+    .single()
 
-  if (!course || (course.instructorId !== session.user.id && session.user.role !== "ADMIN")) {
+  if (findError || !course) return { error: "Not found or unauthorized" }
+  if (course.instructorId !== user.id && user.role !== "ADMIN") {
     return { error: "Not found or unauthorized" }
   }
 
   try {
-    await prisma.course.update({
-      where: { id: courseId },
-      data: { status: "ARCHIVED" },
-    })
+    const { error } = await supabase
+      .from("courses")
+      .update({ status: "ARCHIVED" })
+      .eq('"id"', courseId)
+
+    if (error) return { error: "Failed to delete course" }
 
     revalidatePath("/instructor/courses")
     return { success: true }
@@ -137,58 +156,169 @@ export async function deleteCourse(courseId: string) {
 }
 
 export async function getInstructorCourses() {
-  const session = await auth()
+  const user = await getCurrentUserWithRole()
 
-  if (!session?.user) return []
+  if (!user) return []
 
-  const where =
-    session.user.role === "ADMIN"
-      ? {}
-      : { instructorId: session.user.id }
+  const supabase = createAdminClient()
+  const query = supabase
+    .from("courses")
+    .select("*")
+    .order('"createdAt"', { ascending: false })
 
-  return prisma.course.findMany({
-    where,
-    include: {
-      category: true,
-      modules: {
-        include: { lessons: true },
-      },
-      _count: {
-        select: { enrollments: true },
-      },
-    },
-    orderBy: { createdAt: "desc" },
-  })
+  if (user.role !== "ADMIN") {
+    query.eq('"instructorId"', user.id)
+  }
+
+  const { data: courses, error } = await query
+  if (error) return []
+
+  const coursesWithMeta = await Promise.all(
+    (courses || []).map(async (course) => {
+      const { count: enrollmentCount } = await supabase
+        .from("enrollments")
+        .select("*", { count: "exact", head: true })
+        .eq('"courseId"', course.id)
+
+      const { data: modules } = await supabase
+        .from("modules")
+        .select("*")
+        .eq('"courseId"', course.id)
+
+      const modulesWithLessons = await Promise.all(
+        (modules || []).map(async (mod) => {
+          const { data: lessons } = await supabase
+            .from("lessons")
+            .select("*")
+            .eq('"moduleId"', mod.id)
+          return { ...mod, lessons: lessons || [] }
+        })
+      )
+
+      return {
+        ...course,
+        category: null,
+        modules: modulesWithLessons,
+        _count: { enrollments: enrollmentCount || 0 },
+      }
+    })
+  )
+
+  return coursesWithMeta
 }
 
 export async function getCourseBySlug(slug: string) {
-  return prisma.course.findUnique({
-    where: { slug },
-    include: {
-      instructor: { select: { id: true, name: true, image: true } },
-      category: true,
-      modules: {
-        orderBy: { order: "asc" },
-        include: {
-          lessons: {
-            orderBy: { order: "asc" },
-            where: { OR: [{ isPreviewable: true }, { module: { course: { instructorId: undefined } } }] },
-          },
-        },
-      },
-      _count: { select: { enrollments: true, reviews: true } },
-    },
-  })
+  const supabase = createAdminClient()
+  const { data: course, error } = await supabase
+    .from("courses")
+    .select("*")
+    .eq('"slug"', slug)
+    .single()
+
+  if (error || !course) return null
+
+  const { data: instructor } = await supabase
+    .from("users")
+    .select('"id","name","image"')
+    .eq('"id"', course.instructorId)
+    .single()
+
+  let category = null
+  if (course.categoryId) {
+    const { data: cat } = await supabase
+      .from("categories")
+      .select("*")
+      .eq('"id"', course.categoryId)
+      .single()
+    category = cat
+  }
+
+  const { data: modules } = await supabase
+    .from("modules")
+    .select("*")
+    .eq('"courseId"', course.id)
+    .order('"order"', { ascending: true })
+
+  const modulesWithLessons = await Promise.all(
+    (modules || []).map(async (mod) => {
+      const { data: lessons } = await supabase
+        .from("lessons")
+        .select("*")
+        .eq('"moduleId"', mod.id)
+        .order('"order"', { ascending: true })
+
+      return {
+        ...mod,
+        lessons: lessons || [],
+      }
+    })
+  )
+
+  const { count: enrollmentCount } = await supabase
+    .from("enrollments")
+    .select("*", { count: "exact", head: true })
+    .eq('"courseId"', course.id)
+
+  const { count: reviewCount } = await supabase
+    .from("reviews")
+    .select("*", { count: "exact", head: true })
+    .eq('"courseId"', course.id)
+
+  return {
+    ...course,
+    instructor: instructor || null,
+    category,
+    modules: modulesWithLessons,
+    _count: { enrollments: enrollmentCount || 0, reviews: reviewCount || 0 },
+  }
 }
 
 export async function getPublishedCourses() {
-  return prisma.course.findMany({
-    where: { status: "PUBLISHED" },
-    include: {
-      instructor: { select: { id: true, name: true, image: true } },
-      category: true,
-      _count: { select: { enrollments: true, reviews: true } },
-    },
-    orderBy: { createdAt: "desc" },
-  })
+  const supabase = createAdminClient()
+  const { data: courses, error } = await supabase
+    .from("courses")
+    .select("*")
+    .eq('"status"', "PUBLISHED")
+    .order('"createdAt"', { ascending: false })
+
+  if (error) return []
+
+  const coursesWithMeta = await Promise.all(
+    (courses || []).map(async (course) => {
+      const { data: instructor } = await supabase
+        .from("users")
+        .select('"id","name","image"')
+        .eq('"id"', course.instructorId)
+        .single()
+
+      let category = null
+      if (course.categoryId) {
+        const { data: cat } = await supabase
+          .from("categories")
+          .select("*")
+          .eq('"id"', course.categoryId)
+          .single()
+        category = cat
+      }
+
+      const { count: enrollmentCount } = await supabase
+        .from("enrollments")
+        .select("*", { count: "exact", head: true })
+        .eq('"courseId"', course.id)
+
+      const { count: reviewCount } = await supabase
+        .from("reviews")
+        .select("*", { count: "exact", head: true })
+        .eq('"courseId"', course.id)
+
+      return {
+        ...course,
+        instructor: instructor || null,
+        category,
+        _count: { enrollments: enrollmentCount || 0, reviews: reviewCount || 0 },
+      }
+    })
+  )
+
+  return coursesWithMeta
 }

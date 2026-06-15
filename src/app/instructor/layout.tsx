@@ -1,8 +1,8 @@
-import { auth } from "@/lib/auth"
+import { createClient } from "@/lib/supabase/server"
+import { createAdminClient } from "@/lib/supabase/admin"
 import { redirect } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { Card } from "@/components/ui/card"
 
 const navItems = [
   { label: "Overview", href: "/instructor" },
@@ -15,13 +15,21 @@ export default async function InstructorLayout({
 }: {
   children: React.ReactNode
 }) {
-  const session = await auth()
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
 
-  if (!session?.user) {
+  if (!user) {
     redirect("/auth/login")
   }
 
-  if (session.user.role !== "INSTRUCTOR" && session.user.role !== "ADMIN") {
+  const admin = createAdminClient()
+  const { data: userProfile } = await admin
+    .from('users')
+    .select('role')
+    .eq('"id"', user.id)
+    .single()
+
+  if (userProfile?.role !== "INSTRUCTOR" && userProfile?.role !== "ADMIN") {
     redirect("/dashboard")
   }
 

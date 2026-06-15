@@ -1,6 +1,6 @@
-import { auth } from "@/lib/auth"
+import { createClient } from "@/lib/supabase/server"
+import { createAdminClient } from "@/lib/supabase/admin"
 import { redirect } from "next/navigation"
-import { getStudentEnrollments } from "@/actions/enrollments"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -9,13 +9,51 @@ import { Badge } from "@/components/ui/badge"
 export const dynamic = "force-dynamic"
 
 export default async function DashboardPage() {
-  const session = await auth()
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect("/auth/login")
 
-  if (!session?.user) {
-    redirect("/auth/login")
-  }
+  const admin = createAdminClient()
 
-  const enrollments = await getStudentEnrollments()
+  const { data: userProfile } = await admin
+    .from('users')
+    .select('name, email')
+    .eq('"id"', user.id)
+    .single()
+
+  const { data: enrollments } = await admin
+    .from('enrollments')
+    .select('*')
+    .eq('"userId"', user.id)
+    .order('"enrolledAt"', { ascending: false })
+
+  const enrichedEnrollments = await Promise.all(
+    (enrollments || []).map(async (enrollment) => {
+      const { data: course } = await admin
+        .from('courses')
+        .select('*')
+        .eq('"id"', enrollment.courseId)
+        .single()
+
+      if (!course) return { ...enrollment, course: null }
+
+      const { data: instructor } = await admin
+        .from('users')
+        .select('name')
+        .eq('"id"', course.instructorId)
+        .single()
+
+      const { data: modules } = await admin
+        .from('modules')
+        .select('*, lessons:lessons(id)')
+        .eq('"courseId"', course.id)
+        .order('"order"', { ascending: true })
+
+      return { ...enrollment, course: { ...course, instructor, modules } }
+    })
+  )
+
+  const displayName = userProfile?.name || user.email
 
   const lastLessonRedirect = (courseId: string) => {
     return `/courses/${courseId}`
@@ -26,7 +64,7 @@ export default async function DashboardPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">
-            Welcome, {session.user.name || session.user.email}
+            Welcome, {displayName}
           </h1>
           <p className="text-muted-foreground">Your learning dashboard</p>
         </div>
@@ -35,7 +73,7 @@ export default async function DashboardPage() {
         </Button>
       </div>
 
-      {enrollments.length === 0 ? (
+      {!enrichedEnrollments || enrichedEnrollments.length === 0 || enrichedEnrollments.every(e => !e.course) ? (
         <Card>
           <CardContent className="flex flex-col items-center gap-4 py-12">
             <p className="text-lg text-muted-foreground">
@@ -48,11 +86,11 @@ export default async function DashboardPage() {
         </Card>
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {enrollments.map((enrollment) => {
-            const totalLessons = enrollment.course.modules.reduce(
-              (sum, m) => sum + m.lessons.length,
+          {enrichedEnrollments.filter(e => e.course).map((enrollment) => {
+            const totalLessons = enrollment.course.modules?.reduce(
+              (sum: number, m: any) => sum + (m.lessons?.length || 0),
               0
-            )
+            ) || 0
 
             return (
               <Card key={enrollment.id}>
@@ -61,7 +99,7 @@ export default async function DashboardPage() {
                     {enrollment.course.title}
                   </CardTitle>
                   <div className="text-sm text-muted-foreground">
-                    {enrollment.course.instructor.name}
+                    {enrollment.course.instructor?.name}
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-3">

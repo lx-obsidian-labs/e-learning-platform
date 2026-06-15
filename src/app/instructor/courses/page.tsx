@@ -1,5 +1,5 @@
-import { getInstructorCourses } from "@/actions/courses"
-import { auth } from "@/lib/auth"
+import { createClient } from "@/lib/supabase/server"
+import { createAdminClient } from "@/lib/supabase/admin"
 import Link from "next/link"
 import { redirect } from "next/navigation"
 
@@ -9,13 +9,61 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Badge } from "@/components/ui/badge"
 
 export default async function InstructorCoursesPage() {
-  const session = await auth()
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
 
-  if (!session?.user || session.user.role === "STUDENT") {
+  if (!user) {
     redirect("/login")
   }
 
-  const courses = await getInstructorCourses()
+  const admin = createAdminClient()
+
+  const { data: userProfile } = await admin
+    .from('users')
+    .select('role, id')
+    .eq('"id"', user.id)
+    .single()
+
+  if (!userProfile || userProfile.role === "STUDENT") {
+    redirect("/login")
+  }
+
+  let courses: any[] = []
+
+  if (userProfile.role === "ADMIN") {
+    const { data } = await admin
+      .from('courses')
+      .select('*')
+      .order('"createdAt"', { ascending: false })
+    courses = data || []
+  } else {
+    const { data } = await admin
+      .from('courses')
+      .select('*')
+      .eq('"instructorId"', userProfile.id)
+      .order('"createdAt"', { ascending: false })
+    courses = data || []
+  }
+
+  const enrichedCourses = await Promise.all(
+    courses.map(async (course: any) => {
+      const { data: modules } = await admin
+        .from('modules')
+        .select('id')
+        .eq('"courseId"', course.id)
+
+      const { count: enrollmentCount } = await admin
+        .from('enrollments')
+        .select('*', { count: 'exact', head: true })
+        .eq('"courseId"', course.id)
+
+      return {
+        ...course,
+        modules: modules || [],
+        _count: { enrollments: enrollmentCount || 0 },
+      }
+    })
+  )
 
   return (
     <div className="space-y-6">
@@ -29,7 +77,7 @@ export default async function InstructorCoursesPage() {
         </Button>
       </div>
 
-      {courses.length === 0 ? (
+      {enrichedCourses.length === 0 ? (
         <Card>
           <CardContent className="flex flex-col items-center gap-4 py-12">
             <p className="text-lg text-muted-foreground">No courses yet</p>
@@ -40,7 +88,7 @@ export default async function InstructorCoursesPage() {
         </Card>
       ) : (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {courses.map((course) => (
+          {enrichedCourses.map((course: any) => (
             <Card key={course.id}>
               <CardHeader>
                 <div className="flex items-start justify-between">
@@ -68,7 +116,7 @@ export default async function InstructorCoursesPage() {
                   {course.isFree ? (
                     <span className="text-green-600 font-medium">Free</span>
                   ) : (
-                    <span>${course.price.toFixed(2)}</span>
+                    <span>${Number(course.price).toFixed(2)}</span>
                   )}
                 </div>
               </CardContent>

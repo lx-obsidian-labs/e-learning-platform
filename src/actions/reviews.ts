@@ -1,7 +1,7 @@
 "use server"
 
-import { prisma } from "@/lib/prisma"
-import { auth } from "@/lib/auth"
+import { createAdminClient } from "@/lib/supabase/admin"
+import { getCurrentUserWithRole } from "@/actions/auth"
 import { revalidatePath } from "next/cache"
 import { z } from "zod"
 
@@ -11,12 +11,18 @@ const reviewSchema = z.object({
 })
 
 export async function submitReview(courseId: string, formData: FormData) {
-  const session = await auth()
-  if (!session?.user) return { error: "Not authenticated" }
+  const user = await getCurrentUserWithRole()
+  if (!user) return { error: "Not authenticated" }
 
-  const enrollment = await prisma.enrollment.findUnique({
-    where: { userId_courseId: { userId: session.user.id, courseId } },
-  })
+  const supabase = createAdminClient()
+
+  const { data: enrollment } = await supabase
+    .from("enrollments")
+    .select('"id"')
+    .eq('"userId"', user.id)
+    .eq('"courseId"', courseId)
+    .maybeSingle()
+
   if (!enrollment) return { error: "Must be enrolled to review" }
 
   const parsed = reviewSchema.safeParse({
@@ -26,25 +32,49 @@ export async function submitReview(courseId: string, formData: FormData) {
   if (!parsed.success) return { error: parsed.error.flatten().fieldErrors }
 
   try {
-    await prisma.review.upsert({
-      where: { userId_courseId: { userId: session.user.id, courseId } },
-      update: { rating: parsed.data.rating, comment: parsed.data.comment || null },
-      create: {
-        userId: session.user.id,
-        courseId,
-        rating: parsed.data.rating,
-        comment: parsed.data.comment || null,
-      },
-    })
+    const { data: existing } = await supabase
+      .from("reviews")
+      .select('"id"')
+      .eq('"userId"', user.id)
+      .eq('"courseId"', courseId)
+      .maybeSingle()
 
-    const agg = await prisma.review.aggregate({
-      where: { courseId },
-      _avg: { rating: true },
-    })
-    await prisma.course.update({
-      where: { id: courseId },
-      data: { rating: agg._avg.rating ?? 0 },
-    })
+    if (existing) {
+      const { error } = await supabase
+        .from("reviews")
+        .update({ rating: parsed.data.rating, comment: parsed.data.comment || null })
+        .eq('"id"', existing.id)
+
+      if (error) return { error: "Failed to submit review" }
+    } else {
+      const { error } = await supabase
+        .from("reviews")
+        .insert({
+          userId: user.id,
+          courseId,
+          rating: parsed.data.rating,
+          comment: parsed.data.comment || null,
+        })
+
+      if (error) return { error: "Failed to submit review" }
+    }
+
+    const { data: allReviews } = await supabase
+      .from("reviews")
+      .select('"rating"')
+      .eq('"courseId"', courseId)
+
+    const reviews = allReviews || []
+    const avgRating = reviews.length > 0
+      ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length
+      : 0
+
+    const { error: updateError } = await supabase
+      .from("courses")
+      .update({ rating: avgRating })
+      .eq('"id"', courseId)
+
+    if (updateError) return { error: "Failed to submit review" }
 
     revalidatePath(`/courses/${courseId}`)
     return { success: true }
@@ -54,17 +84,33 @@ export async function submitReview(courseId: string, formData: FormData) {
 }
 
 export async function getCourseReviews(courseSlug: string) {
-  const course = await prisma.course.findUnique({
-    where: { slug: courseSlug },
-    select: { id: true },
-  })
+  const supabase = createAdminClient()
+
+  const { data: course } = await supabase
+    .from("courses")
+    .select('"id"')
+    .eq('"slug"', courseSlug)
+    .single()
+
   if (!course) return []
 
-  return prisma.review.findMany({
-    where: { courseId: course.id },
-    orderBy: { createdAt: "desc" },
-    include: {
-      user: { select: { name: true, image: true } },
-    },
-  })
+  const { data: reviews } = await supabase
+    .from("reviews")
+    .select("*")
+    .eq('"courseId"', course.id)
+    .order('"createdAt"', { ascending: false })
+
+  const enriched = await Promise.all(
+    (reviews || []).map(async (review) => {
+      const { data: user } = await supabase
+        .from("users")
+        .select('"name","image"')
+        .eq('"id"', review.userId)
+        .single()
+
+      return { ...review, user: user || null }
+    })
+  )
+
+  return enriched
 }

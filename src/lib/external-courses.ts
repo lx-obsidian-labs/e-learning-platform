@@ -67,57 +67,75 @@ export async function searchExternalCourses(
   return results
 }
 
+import { createAdminClient } from "@/lib/supabase/admin"
+
 export async function importExternalCourse(
   course: ExternalCourse,
   instructorId: string,
   categoryId?: string
 ) {
-  const { prisma } = await import("@/lib/prisma")
+  const admin = createAdminClient()
 
-  const existing = await prisma.course.findFirst({
-    where: {
-      OR: [
-        { slug: course.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") },
-        { title: course.title },
-      ],
-    },
-  })
+  const slug = course.title
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "")
+
+  const { data: existing } = await admin
+    .from("courses")
+    .select('"id"')
+    .or(`"slug".eq.${slug},"title".eq.${course.title.replace(/'/g, "''")}`)
+    .limit(1)
+    .maybeSingle()
 
   if (existing) {
     return { error: "Course already exists" }
   }
 
-  return prisma.course.create({
-    data: {
+  const { data: newCourse, error } = await admin
+    .from("courses")
+    .insert({
       title: course.title,
-      slug: course.title
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, "-")
-        .replace(/(^-|-$)/g, ""),
+      slug,
       description: course.description,
       price: course.price,
       isFree: course.isFree,
       thumbnail: course.thumbnail,
       status: "DRAFT",
       instructorId,
-      categoryId: categoryId ?? undefined,
-      modules: {
-        create: [
-          {
-            title: "Getting Started",
-            order: 1,
-            lessons: {
-              create: [
-                {
-                  title: course.title,
-                  content: course.description,
-                  order: 1,
-                },
-              ],
-            },
-          },
-        ],
-      },
-    },
-  })
+      categoryId: categoryId || null,
+    })
+    .select('"id"')
+    .single()
+
+  if (error || !newCourse) return { error: "Failed to create course" }
+
+  const { error: moduleError } = await admin
+    .from("modules")
+    .insert({
+      title: "Getting Started",
+      order: 1,
+      courseId: newCourse.id,
+    })
+    .select('"id"')
+    .single()
+
+  if (moduleError) return { error: "Failed to create module" }
+
+  const { data: newModule } = await admin
+    .from("modules")
+    .select('"id"')
+    .eq('"courseId"', newCourse.id)
+    .single()
+
+  if (newModule) {
+    await admin.from("lessons").insert({
+      title: course.title,
+      content: course.description,
+      order: 1,
+      moduleId: newModule.id,
+    })
+  }
+
+  return newCourse
 }

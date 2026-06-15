@@ -1,7 +1,7 @@
 "use server"
 
-import { prisma } from "@/lib/prisma"
-import { auth } from "@/lib/auth"
+import { createAdminClient } from "@/lib/supabase/admin"
+import { getCurrentUserWithRole } from "@/actions/auth"
 import { revalidatePath } from "next/cache"
 import { z } from "zod"
 
@@ -15,14 +15,25 @@ const lessonSchema = z.object({
 })
 
 export async function createLesson(moduleId: string, formData: FormData) {
-  const session = await auth()
-  if (!session?.user || session.user.role === "STUDENT") return { error: "Unauthorized" }
+  const user = await getCurrentUserWithRole()
+  if (!user || user.role === "STUDENT") return { error: "Unauthorized" }
 
-  const mod = await prisma.module.findUnique({
-    where: { id: moduleId },
-    include: { course: true },
-  })
-  if (!mod || (mod.course.instructorId !== session.user.id && session.user.role !== "ADMIN")) {
+  const supabase = createAdminClient()
+  const { data: mod, error: modError } = await supabase
+    .from("modules")
+    .select("*")
+    .eq('"id"', moduleId)
+    .single()
+
+  if (modError || !mod) return { error: "Not found or unauthorized" }
+
+  const { data: course } = await supabase
+    .from("courses")
+    .select('"instructorId"')
+    .eq('"id"', mod.courseId)
+    .single()
+
+  if (!course || (course.instructorId !== user.id && user.role !== "ADMIN")) {
     return { error: "Not found or unauthorized" }
   }
 
@@ -36,14 +47,18 @@ export async function createLesson(moduleId: string, formData: FormData) {
   })
   if (!parsed.success) return { error: parsed.error.flatten().fieldErrors }
 
-  const lastLesson = await prisma.lesson.findFirst({
-    where: { moduleId },
-    orderBy: { order: "desc" },
-  })
+  const { data: lastLesson } = await supabase
+    .from("lessons")
+    .select('"order"')
+    .eq('"moduleId"', moduleId)
+    .order('"order"', { ascending: false })
+    .limit(1)
+    .maybeSingle()
 
   try {
-    await prisma.lesson.create({
-      data: {
+    const { error } = await supabase
+      .from("lessons")
+      .insert({
         title: parsed.data.title,
         description: parsed.data.description || null,
         content: parsed.data.content || null,
@@ -52,8 +67,10 @@ export async function createLesson(moduleId: string, formData: FormData) {
         isPreviewable: parsed.data.isPreviewable,
         order: (lastLesson?.order ?? 0) + 1,
         moduleId,
-      },
-    })
+      })
+
+    if (error) return { error: "Failed to create lesson" }
+
     revalidatePath(`/instructor/courses/${mod.courseId}`)
     return { success: true }
   } catch {
@@ -62,14 +79,33 @@ export async function createLesson(moduleId: string, formData: FormData) {
 }
 
 export async function updateLesson(lessonId: string, formData: FormData) {
-  const session = await auth()
-  if (!session?.user || session.user.role === "STUDENT") return { error: "Unauthorized" }
+  const user = await getCurrentUserWithRole()
+  if (!user || user.role === "STUDENT") return { error: "Unauthorized" }
 
-  const lesson = await prisma.lesson.findUnique({
-    where: { id: lessonId },
-    include: { module: { include: { course: true } } },
-  })
-  if (!lesson || (lesson.module.course.instructorId !== session.user.id && session.user.role !== "ADMIN")) {
+  const supabase = createAdminClient()
+  const { data: lesson, error: lessonError } = await supabase
+    .from("lessons")
+    .select("*")
+    .eq('"id"', lessonId)
+    .single()
+
+  if (lessonError || !lesson) return { error: "Not found or unauthorized" }
+
+  const { data: mod } = await supabase
+    .from("modules")
+    .select('"courseId"')
+    .eq('"id"', lesson.moduleId)
+    .single()
+
+  if (!mod) return { error: "Not found or unauthorized" }
+
+  const { data: course } = await supabase
+    .from("courses")
+    .select('"instructorId"')
+    .eq('"id"', mod.courseId)
+    .single()
+
+  if (!course || (course.instructorId !== user.id && user.role !== "ADMIN")) {
     return { error: "Not found or unauthorized" }
   }
 
@@ -84,11 +120,14 @@ export async function updateLesson(lessonId: string, formData: FormData) {
   if (!parsed.success) return { error: parsed.error.flatten().fieldErrors }
 
   try {
-    await prisma.lesson.update({
-      where: { id: lessonId },
-      data: parsed.data,
-    })
-    revalidatePath(`/instructor/courses/${lesson.module.courseId}`)
+    const { error } = await supabase
+      .from("lessons")
+      .update(parsed.data)
+      .eq('"id"', lessonId)
+
+    if (error) return { error: "Failed to update lesson" }
+
+    revalidatePath(`/instructor/courses/${mod.courseId}`)
     return { success: true }
   } catch {
     return { error: "Failed to update lesson" }
@@ -96,20 +135,45 @@ export async function updateLesson(lessonId: string, formData: FormData) {
 }
 
 export async function deleteLesson(lessonId: string) {
-  const session = await auth()
-  if (!session?.user || session.user.role === "STUDENT") return { error: "Unauthorized" }
+  const user = await getCurrentUserWithRole()
+  if (!user || user.role === "STUDENT") return { error: "Unauthorized" }
 
-  const lesson = await prisma.lesson.findUnique({
-    where: { id: lessonId },
-    include: { module: { include: { course: true } } },
-  })
-  if (!lesson || (lesson.module.course.instructorId !== session.user.id && session.user.role !== "ADMIN")) {
+  const supabase = createAdminClient()
+  const { data: lesson, error: lessonError } = await supabase
+    .from("lessons")
+    .select("*")
+    .eq('"id"', lessonId)
+    .single()
+
+  if (lessonError || !lesson) return { error: "Not found or unauthorized" }
+
+  const { data: mod } = await supabase
+    .from("modules")
+    .select('"courseId"')
+    .eq('"id"', lesson.moduleId)
+    .single()
+
+  if (!mod) return { error: "Not found or unauthorized" }
+
+  const { data: course } = await supabase
+    .from("courses")
+    .select('"instructorId"')
+    .eq('"id"', mod.courseId)
+    .single()
+
+  if (!course || (course.instructorId !== user.id && user.role !== "ADMIN")) {
     return { error: "Not found or unauthorized" }
   }
 
   try {
-    await prisma.lesson.delete({ where: { id: lessonId } })
-    revalidatePath(`/instructor/courses/${lesson.module.courseId}`)
+    const { error } = await supabase
+      .from("lessons")
+      .delete()
+      .eq('"id"', lessonId)
+
+    if (error) return { error: "Failed to delete lesson" }
+
+    revalidatePath(`/instructor/courses/${mod.courseId}`)
     return { success: true }
   } catch {
     return { error: "Failed to delete lesson" }

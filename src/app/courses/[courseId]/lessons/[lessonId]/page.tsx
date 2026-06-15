@@ -1,5 +1,5 @@
-import { prisma } from "@/lib/prisma"
-import { auth } from "@/lib/auth"
+import { createClient } from "@/lib/supabase/server"
+import { createAdminClient } from "@/lib/supabase/admin"
 import { notFound, redirect } from "next/navigation"
 import { getCompletedLessonIds } from "@/actions/completions"
 import { getLessonDiscussions } from "@/actions/discussions"
@@ -19,36 +19,31 @@ export default async function LessonPage({
   params: Promise<{ courseId: string; lessonId: string }>
 }) {
   const { courseId: slug, lessonId } = await params
-  const session = await auth()
-  if (!session?.user) redirect("/auth/login")
 
-  const lesson = await prisma.lesson.findUnique({
-    where: { id: lessonId },
-    include: {
-      module: {
-        include: {
-          course: true,
-          lessons: {
-            orderBy: { order: "asc" },
-            select: { id: true, title: true },
-          },
-        },
-      },
-    },
-  })
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect("/auth/login")
 
-  if (!lesson || lesson.module.course.slug !== slug) notFound()
+  const admin = createAdminClient()
+
+  const { data: lesson } = await admin
+    .from('lessons')
+    .select('*, module:modules(*, course:courses(*), lessons:lessons(id, title, "order"))')
+    .eq('"id"', lessonId)
+    .single()
+
+  if (!lesson || lesson.module?.course?.slug !== slug) notFound()
 
   const course = lesson.module.course
+  const moduleLessons = (lesson.module.lessons || [])
+    .sort((a: any, b: any) => a.order - b.order)
 
-  const enrollment = await prisma.enrollment.findUnique({
-    where: {
-      userId_courseId: {
-        userId: session.user.id,
-        courseId: course.id,
-      },
-    },
-  })
+  const { data: enrollment } = await admin
+    .from('enrollments')
+    .select('*')
+    .eq('"userId"', user.id)
+    .eq('"courseId"', course.id)
+    .maybeSingle()
 
   const canView = enrollment || lesson.isPreviewable
   if (!canView) redirect(`/courses/${slug}`)
@@ -58,11 +53,11 @@ export default async function LessonPage({
 
   const discussions = await getLessonDiscussions(lessonId)
 
-  const currentIndex = lesson.module.lessons.findIndex((l) => l.id === lessonId)
-  const prevLesson = currentIndex > 0 ? lesson.module.lessons[currentIndex - 1] : null
+  const currentIndex = moduleLessons.findIndex((l: any) => l.id === lessonId)
+  const prevLesson = currentIndex > 0 ? moduleLessons[currentIndex - 1] : null
   const nextLesson =
-    currentIndex < lesson.module.lessons.length - 1
-      ? lesson.module.lessons[currentIndex + 1]
+    currentIndex < moduleLessons.length - 1
+      ? moduleLessons[currentIndex + 1]
       : null
 
   return (
@@ -127,7 +122,7 @@ export default async function LessonPage({
               <Link
                 href={`/courses/${slug}/lessons/${prevLesson.id}`}
               >
-                ← {prevLesson.title}
+                &larr; {prevLesson.title}
               </Link>
             </Button>
           )}
@@ -141,7 +136,7 @@ export default async function LessonPage({
           {nextLesson && (
             <Button asChild>
               <Link href={`/courses/${slug}/lessons/${nextLesson.id}`}>
-                {nextLesson.title} →
+                {nextLesson.title} &rarr;
               </Link>
             </Button>
           )}
@@ -153,7 +148,7 @@ export default async function LessonPage({
       <LessonDiscussions
         lessonId={lesson.id}
         discussions={discussions}
-        userId={session.user.id}
+        userId={user.id}
       />
     </div>
   )

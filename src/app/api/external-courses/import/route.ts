@@ -1,11 +1,24 @@
-import { auth } from "@/lib/auth"
+import { createClient } from "@/lib/supabase/server"
+import { createAdminClient } from "@/lib/supabase/admin"
 import { importExternalCourse } from "@/lib/external-courses"
 import { NextRequest, NextResponse } from "next/server"
 
 export async function POST(request: NextRequest) {
-  const session = await auth()
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
 
-  if (!session?.user || session.user.role === "STUDENT") {
+  if (!user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
+
+  const admin = createAdminClient()
+  const { data: userProfile } = await admin
+    .from('users')
+    .select('role')
+    .eq('"id"', user.id)
+    .single()
+
+  if (!userProfile || userProfile.role === "STUDENT") {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
@@ -14,7 +27,7 @@ export async function POST(request: NextRequest) {
   try {
     const course = await importExternalCourse(
       body,
-      session.user.id
+      user.id
     )
     return NextResponse.json(course)
   } catch (error) {

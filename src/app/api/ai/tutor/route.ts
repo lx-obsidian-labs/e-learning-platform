@@ -1,11 +1,12 @@
-import { auth } from "@/lib/auth"
-import { prisma } from "@/lib/prisma"
+import { createClient } from "@/lib/supabase/server"
+import { createAdminClient } from "@/lib/supabase/admin"
 import { chatCompletion, buildTutorPrompt } from "@/lib/nvidia-ai"
 import { NextRequest, NextResponse } from "next/server"
 
 export async function POST(request: NextRequest) {
-  const session = await auth()
-  if (!session?.user) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) {
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 })
   }
 
@@ -15,21 +16,38 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "courseId and question required" }, { status: 400 })
   }
 
-  const enrollment = await prisma.enrollment.findUnique({
-    where: { userId_courseId: { userId: session.user.id, courseId } },
-  })
+  const admin = createAdminClient()
+
+  const { data: enrollment } = await admin
+    .from('enrollments')
+    .select('*')
+    .eq('"userId"', user.id)
+    .eq('"courseId"', courseId)
+    .maybeSingle()
+
   if (!enrollment) {
     return NextResponse.json({ error: "Not enrolled" }, { status: 403 })
   }
 
-  const courseContent = await prisma.lesson.findMany({
-    where: { module: { courseId } },
-    select: { title: true, content: true, description: true },
-    take: 10,
-  })
+  const { data: moduleIds } = await admin
+    .from('modules')
+    .select('"id"')
+    .eq('"courseId"', courseId)
 
-  const context = courseContent
-    .map((l) => `Lesson: ${l.title}\n${l.description ?? ""}\n${l.content ?? ""}`)
+  const mids = (moduleIds || []).map((m: any) => m.id)
+
+  let courseContent: any[] = []
+  if (mids.length > 0) {
+    const { data } = await admin
+      .from('lessons')
+      .select('title, content, description')
+      .in('"moduleId"', mids)
+      .limit(10)
+    courseContent = data || []
+  }
+
+  const context = (courseContent || [])
+    .map((l: any) => `Lesson: ${l.title}\n${l.description ?? ""}\n${l.content ?? ""}`)
     .join("\n\n---\n\n")
 
   try {
@@ -43,3 +61,5 @@ export async function POST(request: NextRequest) {
     )
   }
 }
+
+

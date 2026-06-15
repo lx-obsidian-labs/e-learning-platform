@@ -1,14 +1,19 @@
 "use server"
 
-import { prisma } from "@/lib/prisma"
+import { createAdminClient } from "@/lib/supabase/admin"
 
 export async function getCategories() {
-  return prisma.category.findMany({
-    orderBy: { name: "asc" },
-  })
+  const supabase = createAdminClient()
+  const { data, error } = await supabase
+    .from("categories")
+    .select("*")
+    .order('"name"', { ascending: true })
+  if (error) return []
+  return data
 }
 
 export async function seedCategories() {
+  const supabase = createAdminClient()
   const categories = [
     { name: "Web Development", slug: "web-development" },
     { name: "Mobile Development", slug: "mobile-development" },
@@ -33,10 +38,21 @@ export async function seedCategories() {
   ]
 
   for (const cat of categories) {
-    await prisma.category.upsert({
-      where: { slug: cat.slug },
-      update: { name: cat.name },
-      create: cat,
-    })
+    const { data: existing } = await supabase
+      .from("categories")
+      .select('"id"')
+      .eq('"slug"', cat.slug)
+      .maybeSingle()
+
+    if (existing) {
+      await supabase
+        .from("categories")
+        .update({ name: cat.name })
+        .eq('"slug"', cat.slug)
+    } else {
+      await supabase
+        .from("categories")
+        .insert(cat)
+    }
   }
 }

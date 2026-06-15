@@ -1,7 +1,7 @@
 "use server"
 
-import { prisma } from "@/lib/prisma"
-import { auth } from "@/lib/auth"
+import { createAdminClient } from "@/lib/supabase/admin"
+import { getCurrentUserWithRole } from "@/actions/auth"
 import { revalidatePath } from "next/cache"
 import { z } from "zod"
 
@@ -11,11 +11,18 @@ const moduleSchema = z.object({
 })
 
 export async function createModule(courseId: string, formData: FormData) {
-  const session = await auth()
-  if (!session?.user || session.user.role === "STUDENT") return { error: "Unauthorized" }
+  const user = await getCurrentUserWithRole()
+  if (!user || user.role === "STUDENT") return { error: "Unauthorized" }
 
-  const course = await prisma.course.findUnique({ where: { id: courseId } })
-  if (!course || (course.instructorId !== session.user.id && session.user.role !== "ADMIN")) {
+  const supabase = createAdminClient()
+  const { data: course, error: courseError } = await supabase
+    .from("courses")
+    .select("*")
+    .eq('"id"', courseId)
+    .single()
+
+  if (courseError || !course) return { error: "Not found or unauthorized" }
+  if (course.instructorId !== user.id && user.role !== "ADMIN") {
     return { error: "Not found or unauthorized" }
   }
 
@@ -25,20 +32,26 @@ export async function createModule(courseId: string, formData: FormData) {
   })
   if (!parsed.success) return { error: parsed.error.flatten().fieldErrors }
 
-  const lastModule = await prisma.module.findFirst({
-    where: { courseId },
-    orderBy: { order: "desc" },
-  })
+  const { data: lastModule } = await supabase
+    .from("modules")
+    .select('"order"')
+    .eq('"courseId"', courseId)
+    .order('"order"', { ascending: false })
+    .limit(1)
+    .maybeSingle()
 
   try {
-    await prisma.module.create({
-      data: {
+    const { error } = await supabase
+      .from("modules")
+      .insert({
         title: parsed.data.title,
         description: parsed.data.description || null,
         order: (lastModule?.order ?? 0) + 1,
         courseId,
-      },
-    })
+      })
+
+    if (error) return { error: "Failed to create module" }
+
     revalidatePath(`/instructor/courses/${courseId}`)
     return { success: true }
   } catch {
@@ -47,14 +60,25 @@ export async function createModule(courseId: string, formData: FormData) {
 }
 
 export async function updateModule(moduleId: string, formData: FormData) {
-  const session = await auth()
-  if (!session?.user || session.user.role === "STUDENT") return { error: "Unauthorized" }
+  const user = await getCurrentUserWithRole()
+  if (!user || user.role === "STUDENT") return { error: "Unauthorized" }
 
-  const module = await prisma.module.findUnique({
-    where: { id: moduleId },
-    include: { course: true },
-  })
-  if (!module || (module.course.instructorId !== session.user.id && session.user.role !== "ADMIN")) {
+  const supabase = createAdminClient()
+  const { data: mod, error: modError } = await supabase
+    .from("modules")
+    .select("*")
+    .eq('"id"', moduleId)
+    .single()
+
+  if (modError || !mod) return { error: "Not found or unauthorized" }
+
+  const { data: course } = await supabase
+    .from("courses")
+    .select('"instructorId"')
+    .eq('"id"', mod.courseId)
+    .single()
+
+  if (!course || (course.instructorId !== user.id && user.role !== "ADMIN")) {
     return { error: "Not found or unauthorized" }
   }
 
@@ -65,11 +89,14 @@ export async function updateModule(moduleId: string, formData: FormData) {
   if (!parsed.success) return { error: parsed.error.flatten().fieldErrors }
 
   try {
-    await prisma.module.update({
-      where: { id: moduleId },
-      data: parsed.data,
-    })
-    revalidatePath(`/instructor/courses/${module.courseId}`)
+    const { error } = await supabase
+      .from("modules")
+      .update(parsed.data)
+      .eq('"id"', moduleId)
+
+    if (error) return { error: "Failed to update module" }
+
+    revalidatePath(`/instructor/courses/${mod.courseId}`)
     return { success: true }
   } catch {
     return { error: "Failed to update module" }
@@ -77,20 +104,37 @@ export async function updateModule(moduleId: string, formData: FormData) {
 }
 
 export async function deleteModule(moduleId: string) {
-  const session = await auth()
-  if (!session?.user || session.user.role === "STUDENT") return { error: "Unauthorized" }
+  const user = await getCurrentUserWithRole()
+  if (!user || user.role === "STUDENT") return { error: "Unauthorized" }
 
-  const module = await prisma.module.findUnique({
-    where: { id: moduleId },
-    include: { course: true },
-  })
-  if (!module || (module.course.instructorId !== session.user.id && session.user.role !== "ADMIN")) {
+  const supabase = createAdminClient()
+  const { data: mod, error: modError } = await supabase
+    .from("modules")
+    .select("*")
+    .eq('"id"', moduleId)
+    .single()
+
+  if (modError || !mod) return { error: "Not found or unauthorized" }
+
+  const { data: course } = await supabase
+    .from("courses")
+    .select('"instructorId"')
+    .eq('"id"', mod.courseId)
+    .single()
+
+  if (!course || (course.instructorId !== user.id && user.role !== "ADMIN")) {
     return { error: "Not found or unauthorized" }
   }
 
   try {
-    await prisma.module.delete({ where: { id: moduleId } })
-    revalidatePath(`/instructor/courses/${module.courseId}`)
+    const { error } = await supabase
+      .from("modules")
+      .delete()
+      .eq('"id"', moduleId)
+
+    if (error) return { error: "Failed to delete module" }
+
+    revalidatePath(`/instructor/courses/${mod.courseId}`)
     return { success: true }
   } catch {
     return { error: "Failed to delete module" }
@@ -98,23 +142,31 @@ export async function deleteModule(moduleId: string) {
 }
 
 export async function reorderModules(courseId: string, moduleIds: string[]) {
-  const session = await auth()
-  if (!session?.user || session.user.role === "STUDENT") return { error: "Unauthorized" }
+  const user = await getCurrentUserWithRole()
+  if (!user || user.role === "STUDENT") return { error: "Unauthorized" }
 
-  const course = await prisma.course.findUnique({ where: { id: courseId } })
-  if (!course || (course.instructorId !== session.user.id && session.user.role !== "ADMIN")) {
+  const supabase = createAdminClient()
+  const { data: course, error: courseError } = await supabase
+    .from("courses")
+    .select('"instructorId"')
+    .eq('"id"', courseId)
+    .single()
+
+  if (courseError || !course) return { error: "Not found or unauthorized" }
+  if (course.instructorId !== user.id && user.role !== "ADMIN") {
     return { error: "Not found or unauthorized" }
   }
 
   try {
-    await prisma.$transaction(
-      moduleIds.map((id, index) =>
-        prisma.module.update({
-          where: { id },
-          data: { order: index + 1 },
-        })
-      )
-    )
+    for (let i = 0; i < moduleIds.length; i++) {
+      const { error } = await supabase
+        .from("modules")
+        .update({ order: i + 1 })
+        .eq('"id"', moduleIds[i])
+
+      if (error) return { error: "Failed to reorder modules" }
+    }
+
     revalidatePath(`/instructor/courses/${courseId}`)
     return { success: true }
   } catch {

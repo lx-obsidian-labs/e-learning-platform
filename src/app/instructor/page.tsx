@@ -1,5 +1,5 @@
-import { prisma } from "@/lib/prisma"
-import { auth } from "@/lib/auth"
+import { createClient } from "@/lib/supabase/server"
+import { createAdminClient } from "@/lib/supabase/admin"
 import { redirect } from "next/navigation"
 
 export const dynamic = "force-dynamic"
@@ -8,29 +8,82 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 
 export default async function InstructorPage() {
-  const session = await auth()
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
 
-  if (!session?.user) {
+  if (!user) {
     redirect("/auth/login")
   }
 
-  if (session.user.role !== "INSTRUCTOR" && session.user.role !== "ADMIN") {
+  const admin = createAdminClient()
+
+  const { data: userProfile } = await admin
+    .from('users')
+    .select('name, role')
+    .eq('"id"', user.id)
+    .single()
+
+  if (userProfile?.role !== "INSTRUCTOR" && userProfile?.role !== "ADMIN") {
     redirect("/dashboard")
   }
 
-  const where =
-    session.user.role === "ADMIN" ? {} : { instructorId: session.user.id }
+  const whereClause = userProfile.role === "ADMIN" ? {} : { instructorId: user.id }
+  const instructorId = userProfile.role === "ADMIN" ? null : user.id
 
-  const [courseCount, studentCount, totalRevenue] = await Promise.all([
-    prisma.course.count({ where }),
-    prisma.enrollment.count({
-      where: { course: where },
-    }),
-    prisma.order.aggregate({
-      where: { course: where, status: "COMPLETED" },
-      _sum: { amount: true },
-    }),
-  ])
+  let courseCount = 0
+  let studentCount = 0
+  let totalRevenue = 0
+
+  if (instructorId) {
+    const { count: cCount } = await admin
+      .from('courses')
+      .select('*', { count: 'exact', head: true })
+      .eq('"instructorId"', instructorId)
+
+    courseCount = cCount || 0
+
+    const { data: courseIds } = await admin
+      .from('courses')
+      .select('"id"')
+      .eq('"instructorId"', instructorId)
+
+    if (courseIds && courseIds.length > 0) {
+      const ids = courseIds.map((c: any) => c.id)
+      const { count: sCount } = await admin
+        .from('enrollments')
+        .select('*', { count: 'exact', head: true })
+        .in('"courseId"', ids)
+
+      studentCount = sCount || 0
+
+      const { data: orders } = await admin
+        .from('orders')
+        .select('"amount"')
+        .in('"courseId"', ids)
+        .eq('"status"', 'COMPLETED')
+
+      totalRevenue = orders?.reduce((sum: number, o: any) => sum + Number(o.amount), 0) || 0
+    }
+  } else {
+    const { count: cCount } = await admin
+      .from('courses')
+      .select('*', { count: 'exact', head: true })
+
+    courseCount = cCount || 0
+
+    const { count: sCount } = await admin
+      .from('enrollments')
+      .select('*', { count: 'exact', head: true })
+
+    studentCount = sCount || 0
+
+    const { data: orders } = await admin
+      .from('orders')
+      .select('"amount"')
+      .eq('"status"', 'COMPLETED')
+
+    totalRevenue = orders?.reduce((sum: number, o: any) => sum + Number(o.amount), 0) || 0
+  }
 
   return (
     <div className="space-y-6">
@@ -38,7 +91,7 @@ export default async function InstructorPage() {
         <div>
           <h1 className="text-3xl font-bold">Instructor Dashboard</h1>
           <p className="text-muted-foreground">
-            Welcome back, {session.user.name}
+            Welcome back, {userProfile?.name}
           </p>
         </div>
         <Button asChild>
@@ -75,7 +128,7 @@ export default async function InstructorPage() {
           </CardHeader>
           <CardContent>
             <p className="text-3xl font-bold">
-              ${Number(totalRevenue._sum.amount ?? 0).toFixed(2)}
+              ${totalRevenue.toFixed(2)}
             </p>
           </CardContent>
         </Card>

@@ -1,24 +1,31 @@
 "use server"
 
-import { prisma } from "@/lib/prisma"
-import { auth } from "@/lib/auth"
+import { createAdminClient } from "@/lib/supabase/admin"
+import { getCurrentUserWithRole } from "@/actions/auth"
 import { revalidatePath } from "next/cache"
 
 export async function enrollInCourse(courseId: string) {
-  const session = await auth()
-  if (!session?.user) return { error: "Not authenticated" }
+  const user = await getCurrentUserWithRole()
+  if (!user) return { error: "Not authenticated" }
 
-  const course = await prisma.course.findUnique({
-    where: { id: courseId },
-    select: { id: true, isFree: true, price: true, status: true },
-  })
+  const supabase = createAdminClient()
 
-  if (!course) return { error: "Course not found" }
+  const { data: course, error: courseError } = await supabase
+    .from("courses")
+    .select('"id","isFree","price","status"')
+    .eq('"id"', courseId)
+    .single()
+
+  if (courseError || !course) return { error: "Course not found" }
   if (course.status !== "PUBLISHED") return { error: "Course is not available" }
 
-  const existing = await prisma.enrollment.findUnique({
-    where: { userId_courseId: { userId: session.user.id, courseId } },
-  })
+  const { data: existing } = await supabase
+    .from("enrollments")
+    .select('"id"')
+    .eq('"userId"', user.id)
+    .eq('"courseId"', courseId)
+    .maybeSingle()
+
   if (existing) return { error: "Already enrolled" }
 
   if (!course.isFree && Number(course.price) > 0) {
@@ -26,13 +33,16 @@ export async function enrollInCourse(courseId: string) {
   }
 
   try {
-    await prisma.enrollment.create({
-      data: {
-        userId: session.user.id,
+    const { error } = await supabase
+      .from("enrollments")
+      .insert({
+        userId: user.id,
         courseId,
         status: "NOT_STARTED",
-      },
-    })
+      })
+
+    if (error) return { error: "Failed to enroll" }
+
     revalidatePath(`/courses/${courseId}`)
     revalidatePath("/dashboard")
     return { success: true }
@@ -42,44 +52,88 @@ export async function enrollInCourse(courseId: string) {
 }
 
 export async function getStudentEnrollments() {
-  const session = await auth()
-  if (!session?.user) return []
+  const user = await getCurrentUserWithRole()
+  if (!user) return []
 
-  return prisma.enrollment.findMany({
-    where: { userId: session.user.id },
-    include: {
-      course: {
-        include: {
-          instructor: { select: { name: true } },
-          modules: {
-            include: {
-              lessons: { select: { id: true } },
-            },
-          },
+  const supabase = createAdminClient()
+
+  const { data: enrollments, error } = await supabase
+    .from("enrollments")
+    .select("*")
+    .eq('"userId"', user.id)
+    .order('"enrolledAt"', { ascending: false })
+
+  if (error) return []
+
+  const enriched = await Promise.all(
+    (enrollments || []).map(async (enrollment) => {
+      const { data: course } = await supabase
+        .from("courses")
+        .select("*")
+        .eq('"id"', enrollment.courseId)
+        .single()
+
+      if (!course) return enrollment
+
+      const { data: instructor } = await supabase
+        .from("users")
+        .select('"name"')
+        .eq('"id"', course.instructorId)
+        .single()
+
+      const { data: modules } = await supabase
+        .from("modules")
+        .select('"id"')
+        .eq('"courseId"', course.id)
+
+      const modulesWithLessons = await Promise.all(
+        (modules || []).map(async (mod) => {
+          const { data: lessons } = await supabase
+            .from("lessons")
+            .select('"id"')
+            .eq('"moduleId"', mod.id)
+          return { ...mod, lessons: lessons || [] }
+        })
+      )
+
+      return {
+        ...enrollment,
+        course: {
+          ...course,
+          instructor: instructor || null,
+          modules: modulesWithLessons,
         },
-      },
-    },
-    orderBy: { enrolledAt: "desc" },
-  })
+      }
+    })
+  )
+
+  return enriched
 }
 
 export async function isEnrolled(courseId: string) {
-  const session = await auth()
-  if (!session?.user) return false
+  const user = await getCurrentUserWithRole()
+  if (!user) return false
 
-  const enrollment = await prisma.enrollment.findUnique({
-    where: { userId_courseId: { userId: session.user.id, courseId } },
-  })
-  return !!enrollment
+  const supabase = createAdminClient()
+  const { data } = await supabase
+    .from("enrollments")
+    .select('"id"')
+    .eq('"userId"', user.id)
+    .eq('"courseId"', courseId)
+    .maybeSingle()
+
+  return !!data
 }
 
 export async function getEnrolledCourseIds() {
-  const session = await auth()
-  if (!session?.user) return []
+  const user = await getCurrentUserWithRole()
+  if (!user) return []
 
-  const enrollments = await prisma.enrollment.findMany({
-    where: { userId: session.user.id },
-    select: { courseId: true },
-  })
-  return enrollments.map((e) => e.courseId)
+  const supabase = createAdminClient()
+  const { data: enrollments } = await supabase
+    .from("enrollments")
+    .select('"courseId"')
+    .eq('"userId"', user.id)
+
+  return (enrollments || []).map((e) => e.courseId)
 }

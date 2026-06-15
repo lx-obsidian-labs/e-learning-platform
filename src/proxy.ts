@@ -1,7 +1,66 @@
-import { auth } from "@/lib/auth"
+import { createServerClient } from "@supabase/ssr"
+import { NextResponse } from "next/server"
+import type { NextRequest } from "next/server"
 
-export const proxy = auth
+export async function proxy(request: NextRequest) {
+  let supabaseResponse = NextResponse.next({ request })
+
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return request.cookies.getAll()
+        },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value, options }) =>
+            request.cookies.set(name, value)
+          )
+          supabaseResponse = NextResponse.next({ request })
+          cookiesToSet.forEach(({ name, value, options }) =>
+            supabaseResponse.cookies.set(name, value, options)
+          )
+        },
+      },
+    }
+  )
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  const url = new URL(request.url)
+  const path = url.pathname
+
+  let role = "STUDENT"
+  if (user) {
+    const { data: profile } = await supabase
+      .from("users")
+      .select("role")
+      .eq("id", user.id)
+      .maybeSingle()
+
+    if (profile) {
+      role = profile.role
+    }
+  }
+
+  if (!user && (path.startsWith("/dashboard") || path.startsWith("/instructor") || path.startsWith("/admin"))) {
+    return NextResponse.redirect(new URL("/auth/login", request.url))
+  }
+
+  if (user && role === "STUDENT" && (path.startsWith("/instructor") || path.startsWith("/admin"))) {
+    return NextResponse.redirect(new URL("/dashboard", request.url))
+  }
+
+  if (user && (path === "/auth/login" || path === "/auth/register")) {
+    return NextResponse.redirect(new URL("/dashboard", request.url))
+  }
+
+  return supabaseResponse
+}
 
 export const config = {
-  matcher: ["/(dashboard|instructor|admin)/:path*"],
+  matcher: ["/(dashboard|instructor|admin|auth)/:path*"],
 }

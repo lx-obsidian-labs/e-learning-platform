@@ -1,44 +1,64 @@
 "use server"
 
-import { prisma } from "@/lib/prisma"
-import { auth } from "@/lib/auth"
+import { createAdminClient } from "@/lib/supabase/admin"
+import { getCurrentUserWithRole } from "@/actions/auth"
 import { revalidatePath } from "next/cache"
 
 export async function createDiscussion(lessonId: string, formData: FormData) {
-  const session = await auth()
-  if (!session?.user) return { error: "Not authenticated" }
+  const user = await getCurrentUserWithRole()
+  if (!user) return { error: "Not authenticated" }
 
   const content = formData.get("content") as string
   const parentId = formData.get("parentId") as string | null
 
   if (!content?.trim()) return { error: "Content is required" }
 
-  const lesson = await prisma.lesson.findUnique({
-    where: { id: lessonId },
-    include: { module: { include: { course: true } } },
-  })
-  if (!lesson) return { error: "Lesson not found" }
+  const supabase = createAdminClient()
 
-  const enrollment = await prisma.enrollment.findUnique({
-    where: {
-      userId_courseId: {
-        userId: session.user.id,
-        courseId: lesson.module.courseId,
-      },
-    },
-  })
+  const { data: lesson, error: lessonError } = await supabase
+    .from("lessons")
+    .select("*")
+    .eq('"id"', lessonId)
+    .single()
+
+  if (lessonError || !lesson) return { error: "Lesson not found" }
+
+  const { data: mod } = await supabase
+    .from("modules")
+    .select('"courseId"')
+    .eq('"id"', lesson.moduleId)
+    .single()
+
+  if (!mod) return { error: "Lesson not found" }
+
+  const { data: enrollment } = await supabase
+    .from("enrollments")
+    .select('"id"')
+    .eq('"userId"', user.id)
+    .eq('"courseId"', mod.courseId)
+    .maybeSingle()
+
   if (!enrollment && !lesson.isPreviewable) return { error: "Not enrolled" }
 
+  const { data: course } = await supabase
+    .from("courses")
+    .select('"slug"')
+    .eq('"id"', mod.courseId)
+    .single()
+
   try {
-    await prisma.discussion.create({
-      data: {
+    const { error } = await supabase
+      .from("discussions")
+      .insert({
         content: content.trim(),
-        userId: session.user.id,
+        userId: user.id,
         lessonId,
         parentId: parentId || null,
-      },
-    })
-    revalidatePath(`/courses/${lesson.module.course.slug}/lessons/${lessonId}`)
+      })
+
+    if (error) return { error: "Failed to post comment" }
+
+    revalidatePath(`/courses/${course?.slug || mod.courseId}/lessons/${lessonId}`)
     return { success: true }
   } catch {
     return { error: "Failed to post comment" }
@@ -46,17 +66,48 @@ export async function createDiscussion(lessonId: string, formData: FormData) {
 }
 
 export async function getLessonDiscussions(lessonId: string) {
-  return prisma.discussion.findMany({
-    where: { lessonId, parentId: null },
-    orderBy: { createdAt: "desc" },
-    include: {
-      user: { select: { id: true, name: true, image: true } },
-      replies: {
-        orderBy: { createdAt: "asc" },
-        include: {
-          user: { select: { id: true, name: true, image: true } },
-        },
-      },
-    },
-  })
+  const supabase = createAdminClient()
+
+  const { data: discussions } = await supabase
+    .from("discussions")
+    .select("*")
+    .eq('"lessonId"', lessonId)
+    .is('"parentId"', null)
+    .order('"createdAt"', { ascending: false })
+
+  const enriched = await Promise.all(
+    (discussions || []).map(async (discussion) => {
+      const { data: user } = await supabase
+        .from("users")
+        .select('"id","name","image"')
+        .eq('"id"', discussion.userId)
+        .single()
+
+      const { data: replies } = await supabase
+        .from("discussions")
+        .select("*")
+        .eq('"parentId"', discussion.id)
+        .order('"createdAt"', { ascending: true })
+
+      const repliesWithUser = await Promise.all(
+        (replies || []).map(async (reply) => {
+          const { data: replyUser } = await supabase
+            .from("users")
+            .select('"id","name","image"')
+            .eq('"id"', reply.userId)
+            .single()
+
+          return { ...reply, user: replyUser || null }
+        })
+      )
+
+      return {
+        ...discussion,
+        user: user || null,
+        replies: repliesWithUser,
+      }
+    })
+  )
+
+  return enriched
 }

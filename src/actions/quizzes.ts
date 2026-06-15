@@ -1,7 +1,7 @@
 "use server"
 
-import { prisma } from "@/lib/prisma"
-import { auth } from "@/lib/auth"
+import { createAdminClient } from "@/lib/supabase/admin"
+import { getCurrentUserWithRole } from "@/actions/auth"
 import { revalidatePath } from "next/cache"
 import { z } from "zod"
 
@@ -18,14 +18,25 @@ const questionSchema = z.object({
 })
 
 async function verifyModuleAccess(moduleId: string) {
-  const session = await auth()
-  if (!session?.user || session.user.role === "STUDENT") return null
+  const user = await getCurrentUserWithRole()
+  if (!user || user.role === "STUDENT") return null
 
-  const mod = await prisma.module.findUnique({
-    where: { id: moduleId },
-    include: { course: true },
-  })
-  if (!mod || (mod.course.instructorId !== session.user.id && session.user.role !== "ADMIN")) return null
+  const supabase = createAdminClient()
+  const { data: mod } = await supabase
+    .from("modules")
+    .select("*")
+    .eq('"id"', moduleId)
+    .single()
+
+  if (!mod) return null
+
+  const { data: course } = await supabase
+    .from("courses")
+    .select('"instructorId"')
+    .eq('"id"', mod.courseId)
+    .single()
+
+  if (!course || (course.instructorId !== user.id && user.role !== "ADMIN")) return null
 
   return mod
 }
@@ -43,15 +54,19 @@ export async function createQuiz(moduleId: string, formData: FormData) {
   })
   if (!parsed.success) return { error: parsed.error.flatten().fieldErrors }
 
+  const supabase = createAdminClient()
   try {
-    await prisma.quiz.create({
-      data: {
+    const { error } = await supabase
+      .from("quizzes")
+      .insert({
         title: parsed.data.title,
         description: parsed.data.description || null,
         passingScore: parsed.data.passingScore ?? null,
         moduleId,
-      },
-    })
+      })
+
+    if (error) return { error: "Failed to create quiz" }
+
     revalidatePath(`/instructor/courses/${mod.courseId}`)
     return { success: true }
   } catch {
@@ -60,10 +75,13 @@ export async function createQuiz(moduleId: string, formData: FormData) {
 }
 
 export async function updateQuiz(quizId: string, formData: FormData) {
-  const quiz = await prisma.quiz.findUnique({
-    where: { id: quizId },
-    include: { module: { include: { course: true } } },
-  })
+  const supabase = createAdminClient()
+  const { data: quiz } = await supabase
+    .from("quizzes")
+    .select("*")
+    .eq('"id"', quizId)
+    .single()
+
   if (!quiz) return { error: "Not found" }
 
   const mod = await verifyModuleAccess(quiz.moduleId)
@@ -77,7 +95,13 @@ export async function updateQuiz(quizId: string, formData: FormData) {
   if (!parsed.success) return { error: parsed.error.flatten().fieldErrors }
 
   try {
-    await prisma.quiz.update({ where: { id: quizId }, data: parsed.data })
+    const { error } = await supabase
+      .from("quizzes")
+      .update(parsed.data)
+      .eq('"id"', quizId)
+
+    if (error) return { error: "Failed to update quiz" }
+
     revalidatePath(`/instructor/courses/${mod.courseId}`)
     return { success: true }
   } catch {
@@ -86,17 +110,26 @@ export async function updateQuiz(quizId: string, formData: FormData) {
 }
 
 export async function deleteQuiz(quizId: string) {
-  const quiz = await prisma.quiz.findUnique({
-    where: { id: quizId },
-    include: { module: { include: { course: true } } },
-  })
+  const supabase = createAdminClient()
+  const { data: quiz } = await supabase
+    .from("quizzes")
+    .select("*")
+    .eq('"id"', quizId)
+    .single()
+
   if (!quiz) return { error: "Not found" }
 
   const mod = await verifyModuleAccess(quiz.moduleId)
   if (!mod) return { error: "Unauthorized" }
 
   try {
-    await prisma.quiz.delete({ where: { id: quizId } })
+    const { error } = await supabase
+      .from("quizzes")
+      .delete()
+      .eq('"id"', quizId)
+
+    if (error) return { error: "Failed to delete quiz" }
+
     revalidatePath(`/instructor/courses/${mod.courseId}`)
     return { success: true }
   } catch {
@@ -107,10 +140,13 @@ export async function deleteQuiz(quizId: string) {
 // --- Questions ---
 
 export async function addQuestion(quizId: string, formData: FormData) {
-  const quiz = await prisma.quiz.findUnique({
-    where: { id: quizId },
-    include: { module: { include: { course: true } } },
-  })
+  const supabase = createAdminClient()
+  const { data: quiz } = await supabase
+    .from("quizzes")
+    .select("*")
+    .eq('"id"', quizId)
+    .single()
+
   if (!quiz) return { error: "Not found" }
 
   const mod = await verifyModuleAccess(quiz.moduleId)
@@ -123,21 +159,29 @@ export async function addQuestion(quizId: string, formData: FormData) {
   })
   if (!parsed.success) return { error: parsed.error.flatten().fieldErrors }
 
-  const lastQ = await prisma.quizQuestion.findFirst({
-    where: { quizId },
-    orderBy: { order: "desc" },
-  })
+  const { data: lastQ } = await supabase
+    .from("quiz_questions")
+    .select('"order"')
+    .eq('"quizId"', quizId)
+    .order('"order"', { ascending: false })
+    .limit(1)
+    .maybeSingle()
 
   try {
-    const question = await prisma.quizQuestion.create({
-      data: {
+    const { data: question, error } = await supabase
+      .from("quiz_questions")
+      .insert({
         text: parsed.data.text,
         type: parsed.data.type,
         points: parsed.data.points,
         order: (lastQ?.order ?? 0) + 1,
         quizId,
-      },
-    })
+      })
+      .select('"id"')
+      .single()
+
+    if (error) return { error: "Failed to add question" }
+
     revalidatePath(`/instructor/courses/${mod.courseId}`)
     return { success: true, questionId: question.id }
   } catch {
@@ -146,17 +190,34 @@ export async function addQuestion(quizId: string, formData: FormData) {
 }
 
 export async function removeQuestion(questionId: string) {
-  const q = await prisma.quizQuestion.findUnique({
-    where: { id: questionId },
-    include: { quiz: { include: { module: { include: { course: true } } } } },
-  })
+  const supabase = createAdminClient()
+  const { data: q } = await supabase
+    .from("quiz_questions")
+    .select("*")
+    .eq('"id"', questionId)
+    .single()
+
   if (!q) return { error: "Not found" }
 
-  const mod = await verifyModuleAccess(q.quiz.moduleId)
+  const { data: quiz } = await supabase
+    .from("quizzes")
+    .select('"moduleId"')
+    .eq('"id"', q.quizId)
+    .single()
+
+  if (!quiz) return { error: "Not found" }
+
+  const mod = await verifyModuleAccess(quiz.moduleId)
   if (!mod) return { error: "Unauthorized" }
 
   try {
-    await prisma.quizQuestion.delete({ where: { id: questionId } })
+    const { error } = await supabase
+      .from("quiz_questions")
+      .delete()
+      .eq('"id"', questionId)
+
+    if (error) return { error: "Failed to remove question" }
+
     revalidatePath(`/instructor/courses/${mod.courseId}`)
     return { success: true }
   } catch {
@@ -167,13 +228,24 @@ export async function removeQuestion(questionId: string) {
 // --- Answer Options ---
 
 export async function addOption(questionId: string, formData: FormData) {
-  const q = await prisma.quizQuestion.findUnique({
-    where: { id: questionId },
-    include: { quiz: { include: { module: { include: { course: true } } } } },
-  })
+  const supabase = createAdminClient()
+  const { data: q } = await supabase
+    .from("quiz_questions")
+    .select("*")
+    .eq('"id"', questionId)
+    .single()
+
   if (!q) return { error: "Not found" }
 
-  const mod = await verifyModuleAccess(q.quiz.moduleId)
+  const { data: quiz } = await supabase
+    .from("quizzes")
+    .select('"moduleId"')
+    .eq('"id"', q.quizId)
+    .single()
+
+  if (!quiz) return { error: "Not found" }
+
+  const mod = await verifyModuleAccess(quiz.moduleId)
   if (!mod) return { error: "Unauthorized" }
 
   const text = formData.get("text") as string
@@ -182,9 +254,12 @@ export async function addOption(questionId: string, formData: FormData) {
   if (!text?.trim()) return { error: "Option text is required" }
 
   try {
-    await prisma.quizAnswerOption.create({
-      data: { text, isCorrect, questionId },
-    })
+    const { error } = await supabase
+      .from("quiz_answer_options")
+      .insert({ text, isCorrect, questionId })
+
+    if (error) return { error: "Failed to add option" }
+
     revalidatePath(`/instructor/courses/${mod.courseId}`)
     return { success: true }
   } catch {
@@ -193,17 +268,42 @@ export async function addOption(questionId: string, formData: FormData) {
 }
 
 export async function removeOption(optionId: string) {
-  const opt = await prisma.quizAnswerOption.findUnique({
-    where: { id: optionId },
-    include: { question: { include: { quiz: { include: { module: { include: { course: true } } } } } } },
-  })
+  const supabase = createAdminClient()
+  const { data: opt } = await supabase
+    .from("quiz_answer_options")
+    .select("*")
+    .eq('"id"', optionId)
+    .single()
+
   if (!opt) return { error: "Not found" }
 
-  const mod = await verifyModuleAccess(opt.question.quiz.moduleId)
+  const { data: question } = await supabase
+    .from("quiz_questions")
+    .select('"quizId"')
+    .eq('"id"', opt.questionId)
+    .single()
+
+  if (!question) return { error: "Not found" }
+
+  const { data: quiz } = await supabase
+    .from("quizzes")
+    .select('"moduleId"')
+    .eq('"id"', question.quizId)
+    .single()
+
+  if (!quiz) return { error: "Not found" }
+
+  const mod = await verifyModuleAccess(quiz.moduleId)
   if (!mod) return { error: "Unauthorized" }
 
   try {
-    await prisma.quizAnswerOption.delete({ where: { id: optionId } })
+    const { error } = await supabase
+      .from("quiz_answer_options")
+      .delete()
+      .eq('"id"', optionId)
+
+    if (error) return { error: "Failed to remove option" }
+
     revalidatePath(`/instructor/courses/${mod.courseId}`)
     return { success: true }
   } catch {
@@ -217,41 +317,73 @@ export async function submitQuizAttempt(
   quizId: string,
   answers: { questionId: string; optionId?: string; textAnswer?: string }[]
 ) {
-  const session = await auth()
-  if (!session?.user) return { error: "Not authenticated" }
+  const user = await getCurrentUserWithRole()
+  if (!user) return { error: "Not authenticated" }
 
-  const quiz = await prisma.quiz.findUnique({
-    where: { id: quizId },
-    include: {
-      questions: {
-        include: { options: true },
-        orderBy: { order: "asc" },
-      },
-      module: { include: { course: true } },
-    },
-  })
+  const supabase = createAdminClient()
+
+  const { data: quiz } = await supabase
+    .from("quizzes")
+    .select("*")
+    .eq('"id"', quizId)
+    .single()
+
   if (!quiz) return { error: "Quiz not found" }
 
-  const enrollment = await prisma.enrollment.findUnique({
-    where: { userId_courseId: { userId: session.user.id, courseId: quiz.module.courseId } },
-  })
+  const { data: mod } = await supabase
+    .from("modules")
+    .select('"courseId"')
+    .eq('"id"', quiz.moduleId)
+    .single()
+
+  if (!mod) return { error: "Quiz not found" }
+
+  const { data: course } = await supabase
+    .from("courses")
+    .select('"slug"')
+    .eq('"id"', mod.courseId)
+    .single()
+
+  const { data: enrollment } = await supabase
+    .from("enrollments")
+    .select('"id"')
+    .eq('"userId"', user.id)
+    .eq('"courseId"', mod.courseId)
+    .maybeSingle()
+
   if (!enrollment) return { error: "Not enrolled" }
+
+  const { data: questions } = await supabase
+    .from("quiz_questions")
+    .select("*")
+    .eq('"quizId"', quizId)
+    .order('"order"', { ascending: true })
+
+  const questionsWithOptions = await Promise.all(
+    (questions || []).map(async (question) => {
+      const { data: options } = await supabase
+        .from("quiz_answer_options")
+        .select("*")
+        .eq('"questionId"', question.id)
+      return { ...question, options: options || [] }
+    })
+  )
 
   let total = 0
   let score = 0
 
-  for (const question of quiz.questions) {
+  for (const question of questionsWithOptions) {
     total += question.points
     const answer = answers.find((a) => a.questionId === question.id)
     if (!answer) continue
 
     if (question.type === "MULTIPLE_CHOICE" || question.type === "TRUE_FALSE") {
-      const correct = question.options.find((o) => o.isCorrect)
+      const correct = question.options.find((o: { isCorrect: boolean; id: string }) => o.isCorrect)
       if (correct && answer.optionId === correct.id) {
         score += question.points
       }
     } else if (question.type === "SHORT_ANSWER") {
-      const correct = question.options.find((o) => o.isCorrect)
+      const correct = question.options.find((o: { isCorrect: boolean; text: string }) => o.isCorrect)
       if (
         correct &&
         answer.textAnswer?.toLowerCase().trim() === correct.text.toLowerCase().trim()
@@ -262,24 +394,34 @@ export async function submitQuizAttempt(
   }
 
   try {
-    const attempt = await prisma.quizAttempt.create({
-      data: {
-        userId: session.user.id,
+    const { data: attempt, error: attemptError } = await supabase
+      .from("quiz_attempts")
+      .insert({
+        userId: user.id,
         quizId,
         score,
         total,
-        completedAt: new Date(),
-        answers: {
-          create: answers.map((a) => ({
-            questionId: a.questionId,
-            optionId: a.optionId || null,
-            textAnswer: a.textAnswer || null,
-          })),
-        },
-      },
-    })
+        completedAt: new Date().toISOString(),
+      })
+      .select('"id"')
+      .single()
 
-    revalidatePath(`/courses/${quiz.module.course.slug}`)
+    if (attemptError) return { error: "Failed to submit quiz" }
+
+    for (const a of answers) {
+      const { error: ansError } = await supabase
+        .from("quiz_answers")
+        .insert({
+          attemptId: attempt.id,
+          questionId: a.questionId,
+          optionId: a.optionId || null,
+          textAnswer: a.textAnswer || null,
+        })
+
+      if (ansError) return { error: "Failed to submit quiz" }
+    }
+
+    revalidatePath(`/courses/${course?.slug || mod.courseId}`)
     return { success: true, attempt }
   } catch {
     return { error: "Failed to submit quiz" }
@@ -287,12 +429,26 @@ export async function submitQuizAttempt(
 }
 
 export async function getQuizAttempts(quizId: string) {
-  const session = await auth()
-  if (!session?.user) return []
+  const user = await getCurrentUserWithRole()
+  if (!user) return []
 
-  return prisma.quizAttempt.findMany({
-    where: { userId: session.user.id, quizId },
-    orderBy: { startedAt: "desc" },
-    include: { answers: true },
-  })
+  const supabase = createAdminClient()
+  const { data: attempts } = await supabase
+    .from("quiz_attempts")
+    .select("*")
+    .eq('"userId"', user.id)
+    .eq('"quizId"', quizId)
+    .order('"startedAt"', { ascending: false })
+
+  const attemptsWithAnswers = await Promise.all(
+    (attempts || []).map(async (attempt) => {
+      const { data: answers } = await supabase
+        .from("quiz_answers")
+        .select("*")
+        .eq('"attemptId"', attempt.id)
+      return { ...attempt, answers: answers || [] }
+    })
+  )
+
+  return attemptsWithAnswers
 }

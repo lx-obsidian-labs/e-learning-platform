@@ -1,14 +1,27 @@
 import { getCategories } from "@/actions/categories"
-import { auth } from "@/lib/auth"
+import { createClient } from "@/lib/supabase/server"
+import { createAdminClient } from "@/lib/supabase/admin"
 import { redirect } from "next/navigation"
 
 export const dynamic = "force-dynamic"
 import { CourseForm } from "../course-form"
 
 export default async function NewCoursePage() {
-  const session = await auth()
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
 
-  if (!session?.user || session.user.role === "STUDENT") {
+  if (!user) {
+    redirect("/login")
+  }
+
+  const admin = createAdminClient()
+  const { data: userProfile } = await admin
+    .from('users')
+    .select('role')
+    .eq('"id"', user.id)
+    .single()
+
+  if (!userProfile || userProfile.role === "STUDENT") {
     redirect("/login")
   }
 
