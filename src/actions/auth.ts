@@ -81,3 +81,23 @@ export async function getCurrentUserWithRole() {
 
   return { ...user, ...(profile || { role: "STUDENT" }) }
 }
+
+export async function getUserProfile() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return null
+
+  const admin = createAdminClient()
+  const { data: profile } = await admin
+    .from("users")
+    .select("name, role")
+    .eq('"id"', user.id)
+    .maybeSingle()
+
+  return {
+    id: user.id,
+    email: user.email,
+    name: profile?.name || user.email?.split("@")[0] || "User",
+    role: profile?.role || "STUDENT",
+  }
+}

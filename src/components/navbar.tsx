@@ -14,6 +14,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { createClient } from "@/lib/supabase/client"
+import { getUserProfile } from "@/actions/auth"
 import { Sun, Moon, Menu, X } from "lucide-react"
 
 const navLinks = [
@@ -39,41 +40,21 @@ export function Navbar() {
 
   useEffect(() => {
     setMounted(true)
-    const supabase = createClient()
-
-    async function fetchUser(authUser: any) {
-      if (!authUser) {
-        setUser(null)
-        setLoading(false)
-        return
-      }
-      const { data: profile } = await supabase
-        .from("users")
-        .select("name, role")
-        .eq('"id"', authUser.id)
-        .maybeSingle()
-      setUser({
-        id: authUser.id,
-        name: profile?.name || authUser.email?.split("@")[0] || "User",
-        email: authUser.email,
-        role: profile?.role || "STUDENT",
-      })
-      setLoading(false)
-    }
 
     ;(async () => {
-      const { data: { session } } = await supabase.auth.getSession()
-      if (session?.user) {
-        fetchUser(session.user)
-      } else {
-        setLoading(false)
+      const profile = await getUserProfile()
+      if (profile) {
+        setUser(profile)
       }
+      setLoading(false)
     })()
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (session?.user) {
-        if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED") {
-          fetchUser(session.user)
+    const supabase = createClient()
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED") {
+        if (session?.user) {
+          const profile = await getUserProfile()
+          if (profile) setUser(profile)
         }
       } else if (event === "SIGNED_OUT") {
         setUser(null)
