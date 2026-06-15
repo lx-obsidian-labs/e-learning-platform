@@ -7,6 +7,7 @@ import { Footer } from "@/components/footer"
 import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { validateEnv } from "@/lib/env"
+import { FloatingAiAssistant } from "@/components/floating-ai-assistant"
 
 validateEnv()
 
@@ -77,6 +78,7 @@ export default async function RootLayout({
             <Navbar initialUser={initialUser} />
             <main>{children}</main>
             <Footer />
+            <FloatingAiAssistant />
           </div>
         </Providers>
       </body>

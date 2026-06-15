@@ -123,6 +123,28 @@ export default async function HomePage() {
         </section>
       )}
 
+      {/* AI-Powered Learning Section */}
+      <section className="relative py-24 overflow-hidden bg-gradient-to-b from-transparent via-primary/[0.02] to-transparent">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 text-center">
+          <Badge variant="secondary" className="mb-4">AI-Powered</Badge>
+          <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-4">
+            Learn smarter with AI
+          </h2>
+          <p className="text-muted-foreground max-w-2xl mx-auto leading-relaxed mb-8">
+            Get personalized course recommendations, ask our AI tutor questions in real-time,
+            receive daily learning insights, and chat with a moderator that keeps discussions constructive.
+          </p>
+          <div className="flex items-center justify-center gap-4 flex-wrap">
+            <Button asChild className="btn-premium h-10 px-6">
+              <Link href="/courses">Ask the AI assistant</Link>
+            </Button>
+            <Button variant="outline" asChild>
+              <Link href="/courses">Browse courses</Link>
+            </Button>
+          </div>
+        </div>
+      </section>
+
       <TestimonialsSection />
 
       <section className="relative py-24">
