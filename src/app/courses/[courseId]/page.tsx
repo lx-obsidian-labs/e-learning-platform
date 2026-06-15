@@ -95,7 +95,7 @@ export default async function CourseDetailPage({
   const progressPct = totalLessons > 0 ? Math.round((completedCount / totalLessons) * 100) : 0
 
   const userReview = user
-    ? (reviews || []).find((r: any) => r.user.name === instructor?.name) ?? null
+    ? (reviews || []).find((r: any) => r.userId === user.id) ?? null
     : null
 
   const gradientClasses = [
@@ -313,7 +313,7 @@ export default async function CourseDetailPage({
 
         <div className="space-y-6">
           {user ? (
-            <EnrollButton courseId={course.id} enrolled={enrolled} />
+            <EnrollButton courseId={course.id} courseSlug={course.slug} enrolled={enrolled} />
           ) : (
             <Button size="lg" className="w-full h-12 text-base" asChild>
               <Link href="/auth/login">Login to Enroll</Link>
@@ -371,9 +371,10 @@ export default async function CourseDetailPage({
 
         <ReviewSection
           courseId={course.id}
+          courseSlug={slug}
           reviews={(reviews || []).map((r: any) => ({
             ...r,
-            isOwn: r.user.name === instructor?.name,
+            isOwn: r.userId === user?.id,
           }))}
           canReview={enrolled}
           userReview={userReview ? { ...userReview, isOwn: true } : null}

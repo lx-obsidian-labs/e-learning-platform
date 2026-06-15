@@ -14,7 +14,7 @@ export default async function EditCoursePage({
 }) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect("/login")
+  if (!user) redirect("/auth/login")
 
   const admin = createAdminClient()
 
@@ -24,7 +24,7 @@ export default async function EditCoursePage({
     .eq('"id"', user.id)
     .single()
 
-  if (!userProfile || userProfile.role === "STUDENT") redirect("/login")
+  if (!userProfile || userProfile.role === "STUDENT") redirect("/auth/login")
 
   const { courseId } = await params
 

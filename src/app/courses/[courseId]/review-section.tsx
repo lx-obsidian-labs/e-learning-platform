@@ -20,6 +20,7 @@ type Review = {
 
 type Props = {
   courseId: string
+  courseSlug: string
   reviews: Review[]
   canReview: boolean
   userReview?: Review | null
@@ -61,7 +62,7 @@ function StarDisplay({ rating }: { rating: number }) {
   )
 }
 
-export function ReviewSection({ courseId, reviews, canReview, userReview }: Props) {
+export function ReviewSection({ courseId, courseSlug, reviews, canReview, userReview }: Props) {
   const router = useRouter()
   const [rating, setRating] = useState(userReview?.rating ?? 0)
   const [comment, setComment] = useState(userReview?.comment ?? "")
@@ -74,7 +75,7 @@ export function ReviewSection({ courseId, reviews, canReview, userReview }: Prop
     const fd = new FormData()
     fd.set("rating", String(rating))
     fd.set("comment", comment)
-    const result = await submitReview(courseId, fd)
+    const result = await submitReview(courseId, courseSlug, fd)
     if (result.success) {
       toast.success(userReview ? "Review updated" : "Review submitted")
       router.refresh()

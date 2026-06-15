@@ -97,8 +97,8 @@ export async function updateCourse(courseId: string, formData: FormData) {
     }
   }
 
-  if (raw.price) raw.price = Number(raw.price)
-  if (raw.isFree) raw.isFree = raw.isFree === "true" || raw.isFree === true
+  if (raw.price !== undefined) raw.price = Number(raw.price)
+  if (raw.isFree !== undefined) raw.isFree = raw.isFree === "true" || raw.isFree === true
 
   const parsed = updateCourseSchema.safeParse(raw)
   if (!parsed.success) {

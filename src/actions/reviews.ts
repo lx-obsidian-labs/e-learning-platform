@@ -11,7 +11,7 @@ const reviewSchema = z.object({
   comment: z.string().max(1000).optional(),
 })
 
-export async function submitReview(courseId: string, formData: FormData) {
+export async function submitReview(courseId: string, courseSlug: string, formData: FormData) {
   const user = await getCurrentUserWithRole()
   if (!user) return { error: "Not authenticated" }
 
@@ -61,12 +61,12 @@ export async function submitReview(courseId: string, formData: FormData) {
       if (error) return { error: "Failed to submit review" }
     }
 
-    const { data: allReviews } = await supabase
+    const { data: avgResult } = await supabase
       .from("reviews")
-      .select('"rating"')
+      .select("rating")
       .eq('"courseId"', courseId)
 
-    const reviews = allReviews || []
+    const reviews = avgResult || []
     const avgRating = reviews.length > 0
       ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length
       : 0
@@ -78,7 +78,8 @@ export async function submitReview(courseId: string, formData: FormData) {
 
     if (updateError) return { error: "Failed to submit review" }
 
-    revalidatePath(`/courses/${courseId}`)
+    revalidatePath(`/courses/${courseSlug}`)
+    revalidatePath("/courses")
     return { success: true }
   } catch {
     return { error: "Failed to submit review" }

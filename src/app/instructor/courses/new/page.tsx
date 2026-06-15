@@ -11,7 +11,7 @@ export default async function NewCoursePage() {
   const { data: { user } } = await supabase.auth.getUser()
 
   if (!user) {
-    redirect("/login")
+    redirect("/auth/login")
   }
 
   const admin = createAdminClient()
@@ -22,7 +22,7 @@ export default async function NewCoursePage() {
     .single()
 
   if (!userProfile || userProfile.role === "STUDENT") {
-    redirect("/login")
+    redirect("/auth/login")
   }
 
   const categories = await getCategories()

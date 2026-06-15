@@ -9,10 +9,11 @@ import Link from "next/link"
 
 type Props = {
   courseId: string
+  courseSlug: string
   enrolled: boolean
 }
 
-export function EnrollButton({ courseId, enrolled }: Props) {
+export function EnrollButton({ courseId, courseSlug, enrolled }: Props) {
   const router = useRouter()
   const [pending, setPending] = useState(false)
 
@@ -30,7 +31,7 @@ export function EnrollButton({ courseId, enrolled }: Props) {
 
   return enrolled ? (
     <Button asChild size="lg">
-      <Link href={`/courses/${courseId}`}>Continue Learning</Link>
+      <Link href={`/courses/${courseSlug}`}>Continue Learning</Link>
     </Button>
   ) : (
     <Button size="lg" onClick={handleEnroll} disabled={pending}>

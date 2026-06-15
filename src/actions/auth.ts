@@ -76,7 +76,7 @@ export async function getCurrentUserWithRole() {
   const { data: profile } = await supabase
     .from("users")
     .select("*")
-    .eq("id", user.id)
+    .eq('"id"', user.id)
     .maybeSingle()
 
   return { ...user, ...(profile || { role: "STUDENT" }) }
