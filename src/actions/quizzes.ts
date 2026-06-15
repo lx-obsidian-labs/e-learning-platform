@@ -3,6 +3,7 @@
 import { createAdminClient } from "@/lib/supabase/admin"
 import { getCurrentUserWithRole } from "@/actions/auth"
 import { revalidatePath } from "next/cache"
+import { randomUUID } from "crypto"
 import { z } from "zod"
 
 const quizSchema = z.object({
@@ -59,6 +60,7 @@ export async function createQuiz(moduleId: string, formData: FormData) {
     const { error } = await supabase
       .from("quizzes")
       .insert({
+        id: randomUUID(),
         title: parsed.data.title,
         description: parsed.data.description || null,
         passingScore: parsed.data.passingScore ?? null,
@@ -171,6 +173,7 @@ export async function addQuestion(quizId: string, formData: FormData) {
     const { data: question, error } = await supabase
       .from("quiz_questions")
       .insert({
+        id: randomUUID(),
         text: parsed.data.text,
         type: parsed.data.type,
         points: parsed.data.points,
@@ -256,7 +259,7 @@ export async function addOption(questionId: string, formData: FormData) {
   try {
     const { error } = await supabase
       .from("quiz_answer_options")
-      .insert({ text, isCorrect, questionId })
+      .insert({ id: randomUUID(), text, isCorrect, questionId })
 
     if (error) return { error: "Failed to add option" }
 
@@ -397,6 +400,7 @@ export async function submitQuizAttempt(
     const { data: attempt, error: attemptError } = await supabase
       .from("quiz_attempts")
       .insert({
+        id: randomUUID(),
         userId: user.id,
         quizId,
         score,
@@ -412,6 +416,7 @@ export async function submitQuizAttempt(
       const { error: ansError } = await supabase
         .from("quiz_user_answers")
         .insert({
+          id: randomUUID(),
           attemptId: attempt.id,
           questionId: a.questionId,
           optionId: a.optionId || null,

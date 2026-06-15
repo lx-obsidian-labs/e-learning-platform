@@ -139,6 +139,36 @@ body {
 .animate-gradient-shift { background-size: 200% 200%; animation: gradient-shift 8s ease infinite; }
 .animate-slide-up { animation: slide-up 0.5s ease-out; }
 .animate-fade-in { animation: fade-in 0.5s ease-out; }
+.animate-shimmer { background-size: 200% 100%; animation: shimmer 3s ease-in-out infinite; }
+
+@keyframes scale-in {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.animate-scale-in { animation: scale-in 0.3s ease-out; }
+
+.bg-grid-white {
+  background-image: linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+.bg-grid-black {
+  background-image: linear-gradient(rgba(0,0,0,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,0,0,0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+.dark .bg-grid-black {
+  background-image: linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+}
 
 .glass {
   background: rgba(255, 255, 255, 0.05);

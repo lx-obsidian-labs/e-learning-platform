@@ -3,6 +3,7 @@
 import { createAdminClient } from "@/lib/supabase/admin"
 import { getCurrentUserWithRole } from "@/actions/auth"
 import { revalidatePath } from "next/cache"
+import { randomUUID } from "crypto"
 
 export async function createDiscussion(lessonId: string, formData: FormData) {
   const user = await getCurrentUserWithRole()
@@ -50,6 +51,7 @@ export async function createDiscussion(lessonId: string, formData: FormData) {
     const { error } = await supabase
       .from("discussions")
       .insert({
+        id: randomUUID(),
         content: content.trim(),
         userId: user.id,
         lessonId,

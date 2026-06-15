@@ -50,7 +50,7 @@ export default async function QuizPage({
     .limit(5)
 
   return (
-    <div className="max-w-3xl mx-auto space-y-6">
+    <div className="max-w-3xl mx-auto space-y-6 pt-16 sm:pt-20">
       <div className="space-y-1">
         <h1 className="text-3xl font-bold">{quiz.title}</h1>
         {quiz.description && (

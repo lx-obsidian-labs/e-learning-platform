@@ -88,7 +88,7 @@ export default async function LessonPage({
   const videoCount = moduleLessons.length
 
   return (
-    <div className="max-w-5xl mx-auto space-y-6">
+    <div className="max-w-5xl mx-auto space-y-6 pt-16 sm:pt-20">
       <div className="flex items-center gap-2 text-sm text-muted-foreground flex-wrap">
         <Link href={`/courses/${slug}`} className="hover:text-foreground transition-colors font-medium">
           {course.title}

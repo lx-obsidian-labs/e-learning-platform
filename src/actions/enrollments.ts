@@ -3,6 +3,7 @@
 import { createAdminClient } from "@/lib/supabase/admin"
 import { getCurrentUserWithRole } from "@/actions/auth"
 import { revalidatePath } from "next/cache"
+import { randomUUID } from "crypto"
 
 export async function enrollInCourse(courseId: string) {
   const user = await getCurrentUserWithRole()
@@ -36,6 +37,7 @@ export async function enrollInCourse(courseId: string) {
     const { error } = await supabase
       .from("enrollments")
       .insert({
+        id: randomUUID(),
         userId: user.id,
         courseId,
         status: "NOT_STARTED",

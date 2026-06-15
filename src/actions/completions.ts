@@ -3,6 +3,7 @@
 import { createAdminClient } from "@/lib/supabase/admin"
 import { getCurrentUserWithRole } from "@/actions/auth"
 import { revalidatePath } from "next/cache"
+import { randomUUID } from "crypto"
 
 export async function markLessonComplete(lessonId: string) {
   const user = await getCurrentUserWithRole()
@@ -52,7 +53,7 @@ export async function markLessonComplete(lessonId: string) {
     if (!existing) {
       const { error: insertError } = await supabase
         .from("lesson_completions")
-        .insert({ userId: user.id, lessonId })
+        .insert({ id: randomUUID(), userId: user.id, lessonId })
 
       if (insertError) return { error: "Failed to mark lesson complete" }
     }

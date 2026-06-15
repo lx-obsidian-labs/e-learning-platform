@@ -3,6 +3,7 @@
 import { createAdminClient } from "@/lib/supabase/admin"
 import { getCurrentUserWithRole } from "@/actions/auth"
 import { revalidatePath } from "next/cache"
+import { randomUUID } from "crypto"
 import { z } from "zod"
 
 const lessonSchema = z.object({
@@ -59,6 +60,7 @@ export async function createLesson(moduleId: string, formData: FormData) {
     const { error } = await supabase
       .from("lessons")
       .insert({
+        id: randomUUID(),
         title: parsed.data.title,
         description: parsed.data.description || null,
         content: parsed.data.content || null,

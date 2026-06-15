@@ -3,6 +3,7 @@
 import { createAdminClient } from "@/lib/supabase/admin"
 import { getCurrentUserWithRole } from "@/actions/auth"
 import { revalidatePath } from "next/cache"
+import { randomUUID } from "crypto"
 import { z } from "zod"
 
 const moduleSchema = z.object({
@@ -44,6 +45,7 @@ export async function createModule(courseId: string, formData: FormData) {
     const { error } = await supabase
       .from("modules")
       .insert({
+        id: randomUUID(),
         title: parsed.data.title,
         description: parsed.data.description || null,
         order: (lastModule?.order ?? 0) + 1,

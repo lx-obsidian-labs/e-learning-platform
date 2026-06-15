@@ -3,6 +3,7 @@
 import { createAdminClient } from "@/lib/supabase/admin"
 import { getCurrentUserWithRole } from "@/actions/auth"
 import { revalidatePath } from "next/cache"
+import { randomUUID } from "crypto"
 import { z } from "zod"
 
 const reviewSchema = z.object({
@@ -50,6 +51,7 @@ export async function submitReview(courseId: string, formData: FormData) {
       const { error } = await supabase
         .from("reviews")
         .insert({
+          id: randomUUID(),
           userId: user.id,
           courseId,
           rating: parsed.data.rating,

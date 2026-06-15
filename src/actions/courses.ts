@@ -3,6 +3,7 @@
 import { createAdminClient } from "@/lib/supabase/admin"
 import { getCurrentUserWithRole } from "@/actions/auth"
 import { revalidatePath } from "next/cache"
+import { randomUUID } from "crypto"
 import { z } from "zod"
 
 const createCourseSchema = z.object({
@@ -43,15 +44,16 @@ export async function createCourse(formData: FormData) {
     const { data: course, error } = await supabase
       .from("courses")
       .insert({
+        id: randomUUID(),
         title: parsed.data.title,
         slug: parsed.data.title
           .toLowerCase()
           .replace(/[^a-z0-9]+/g, "-")
           .replace(/(^-|-$)/g, ""),
-        description: parsed.data.description,
-        price: parsed.data.price,
-        isFree: parsed.data.isFree,
-        categoryId: parsed.data.categoryId,
+        description: parsed.data.description || null,
+        price: parsed.data.price ?? 0,
+        isFree: parsed.data.isFree ?? true,
+        categoryId: parsed.data.categoryId || null,
         instructorId: user.id,
       })
       .select("*")
