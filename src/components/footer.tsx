@@ -12,15 +12,14 @@ const footerLinks = {
   ],
   Support: [
     { href: "/faq", label: "FAQ" },
-    { href: "/help", label: "Help Center" },
     { href: "/terms", label: "Terms of Service" },
     { href: "/privacy", label: "Privacy Policy" },
+    { href: "/disclaimer", label: "Disclaimer" },
+    { href: "/compliance", label: "Compliance" },
   ],
   Community: [
-    { href: "/blog", label: "Blog" },
-    { href: "/discussions", label: "Discussions" },
     { href: "/instructor", label: "Teach on Edu Learn" },
-    { href: "/affiliate", label: "Affiliate Program" },
+    { href: "/discussions", label: "Discussions" },
   ],
 }
 
