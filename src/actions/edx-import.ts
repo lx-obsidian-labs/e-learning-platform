@@ -12,7 +12,7 @@ function slugify(text: string) {
 
 const now = () => new Date().toISOString()
 
-function createCourseInDb(admin: any, title: string, description: string, userId: string) {
+function createCourseInDb(admin: any, title: string, description: string, userId: string, sourceInfo?: { source: string; sourceUrl: string; sourceName: string }) {
   const slug = slugify(title)
   return admin.from("courses").insert({
     id: randomUUID(),
@@ -25,6 +25,9 @@ function createCourseInDb(admin: any, title: string, description: string, userId
     instructorId: userId,
     status: "PUBLISHED",
     updatedAt: now(),
+    source: sourceInfo?.source || null,
+    sourceUrl: sourceInfo?.sourceUrl || null,
+    sourceName: sourceInfo?.sourceName || null,
   }).select('"id"').single()
 }
 
@@ -122,7 +125,11 @@ export async function importEdxCourse(courseId: string) {
     const { data: existing } = await admin.from("courses").select('"id"').eq('"slug"', slug).maybeSingle()
     if (existing) return { error: "Course already exists", id: existing.id }
 
-    const { data: newCourse, error } = await createCourseInDb(admin, staticData.title, staticData.description, user.id)
+    const { data: newCourse, error } = await createCourseInDb(admin, staticData.title, staticData.description, user.id, {
+      source: "edx",
+      sourceUrl: staticData.url || `https://www.edx.org`,
+      sourceName: staticData.instructor || "edX",
+    })
     if (error || !newCourse) return { error: "Failed to create course" }
 
     const lessons = STATIC_COURSE_LESSONS[courseId]
@@ -159,7 +166,11 @@ export async function importEdxCourse(courseId: string) {
     const { data: existing } = await admin.from("courses").select('"id"').eq('"slug"', slug).maybeSingle()
     if (existing) return { error: "Course already exists", id: existing.id }
 
-    const { data: newCourse, error } = await createCourseInDb(admin, course.title, course.description, user.id)
+    const { data: newCourse, error } = await createCourseInDb(admin, course.title, course.description, user.id, {
+      source: "edx",
+      sourceUrl: course.url || `https://www.edx.org/courses`,
+      sourceName: course.instructor || "edX",
+    })
     if (error || !newCourse) return { error: "Failed to create course" }
 
     const sections = await provider.getCourseStructure(edxCourseId)

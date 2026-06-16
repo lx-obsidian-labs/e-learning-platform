@@ -220,6 +220,14 @@ export async function importExternalCourse(
     ? course.lessons
     : [{ title: course.title, content: course.content || course.description }]
 
+  const platformNames: Record<string, string> = {
+    khan_academy: "Khan Academy",
+    wikiversity: "Wikiversity",
+    openstax: "OpenStax",
+    freecodecamp: "freeCodeCamp",
+    openlearn: "The Open University (OpenLearn)",
+  }
+
   const { data: newCourse, error } = await admin
     .from("courses")
     .insert({
@@ -234,6 +242,9 @@ export async function importExternalCourse(
       instructorId,
       status: "PUBLISHED",
       updatedAt: now,
+      source: course.platform,
+      sourceUrl: course.url || null,
+      sourceName: platformNames[course.platform] || course.instructor || null,
     })
     .select('"id"')
     .single()
