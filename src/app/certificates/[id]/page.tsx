@@ -3,7 +3,8 @@ import { redirect } from "next/navigation"
 import Link from "next/link"
 import { getCertificateById } from "@/actions/certificates"
 import { Button } from "@/components/ui/button"
-import { Shield, ArrowLeft, CheckCircle2 } from "lucide-react"
+import { Badge } from "@/components/ui/badge"
+import { Shield, ArrowLeft, CheckCircle2, Ban } from "lucide-react"
 import { CertificateDisplay } from "@/components/certificate-display"
 
 export const dynamic = "force-dynamic"
@@ -52,20 +53,36 @@ export default async function CertificatePage({ params }: { params: Promise<{ id
 
         <CertificateDisplay cert={cert} />
 
-        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 p-4 bg-muted/50 rounded-xl">
-          <div className="flex items-center gap-2 text-sm">
-            <CheckCircle2 className="h-5 w-5 text-emerald-500" />
-            <span className="font-medium">Blockchain Verified</span>
+        {(cert as Record<string, unknown>).revokedAt ? (
+          <div className="flex items-center gap-3 p-4 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900 rounded-xl">
+            <Ban className="h-5 w-5 text-red-500 shrink-0" />
+            <div>
+              <p className="text-sm font-medium text-red-600 dark:text-red-400">Certificate Revoked</p>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                This certificate was revoked on{" "}
+                {new Date((cert as Record<string, unknown>).revokedAt as string).toLocaleDateString("en-US", {
+                  year: "numeric", month: "long", day: "numeric",
+                })}.
+              </p>
+            </div>
+            <Badge variant="destructive" className="ml-auto">Revoked</Badge>
           </div>
-          <div className="flex-1 font-mono text-xs text-muted-foreground bg-background px-3 py-2 rounded-lg break-all">
-            {cert.hash}
+        ) : (
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 p-4 bg-muted/50 rounded-xl">
+            <div className="flex items-center gap-2 text-sm">
+              <CheckCircle2 className="h-5 w-5 text-emerald-500" />
+              <span className="font-medium">Blockchain Verified</span>
+            </div>
+            <div className="flex-1 font-mono text-xs text-muted-foreground bg-background px-3 py-2 rounded-lg break-all">
+              {cert.hash}
+            </div>
+            <Button variant="outline" size="sm" className="shrink-0" asChild>
+              <Link href={`/verify?hash=${cert.hash}`}>
+                <Shield className="h-4 w-4 mr-1" /> Verify
+              </Link>
+            </Button>
           </div>
-          <Button variant="outline" size="sm" className="shrink-0" asChild>
-            <Link href={`/verify?hash=${cert.hash}`}>
-              <Shield className="h-4 w-4 mr-1" /> Verify
-            </Link>
-          </Button>
-        </div>
+        )}
       </div>
     </div>
   )
