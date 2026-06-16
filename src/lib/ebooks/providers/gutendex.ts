@@ -108,23 +108,36 @@ export class GutendexProvider implements EbookProvider {
     const numericId = id.replace("gutendex_", "")
     const metaUrl = `${BASE}/books/${numericId}`
 
-    const controller = new AbortController()
-    const timer = setTimeout(() => controller.abort(), TIMEOUT)
+    let textUrl = ""
     try {
-      const metaRes = await fetch(metaUrl, { signal: controller.signal })
-      if (!metaRes.ok) return null
-      const book: GutendexBook = await metaRes.json()
-
-      const textUrl = book.formats["text/plain; charset=us-ascii"] || book.formats["text/plain"] || ""
-      if (!textUrl) return null
-
-      const textRes = await fetch(textUrl, { signal: controller.signal })
-      if (!textRes.ok) return null
-      return await textRes.text()
+      const metaController = new AbortController()
+      const metaTimer = setTimeout(() => metaController.abort(), TIMEOUT)
+      try {
+        const metaRes = await fetch(metaUrl, { signal: metaController.signal })
+        if (!metaRes.ok) return null
+        const book: GutendexBook = await metaRes.json()
+        textUrl = book.formats["text/plain; charset=us-ascii"] || book.formats["text/plain"] || ""
+      } finally {
+        clearTimeout(metaTimer)
+      }
     } catch {
       return null
-    } finally {
-      clearTimeout(timer)
+    }
+
+    if (!textUrl) return null
+
+    try {
+      const textController = new AbortController()
+      const textTimer = setTimeout(() => textController.abort(), 30000)
+      try {
+        const textRes = await fetch(textUrl, { signal: textController.signal })
+        if (!textRes.ok) return null
+        return await textRes.text()
+      } finally {
+        clearTimeout(textTimer)
+      }
+    } catch {
+      return null
     }
   }
 
