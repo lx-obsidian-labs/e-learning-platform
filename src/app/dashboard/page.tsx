@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { StatCard } from "@/components/dashboard/stat-card"
 import { ProgressCard } from "@/components/dashboard/progress-card"
-import { BookOpen, Clock, CheckCircle, TrendingUp, ArrowRight, Award, Brain, BarChart3 } from "lucide-react"
+import { BookOpen, Clock, CheckCircle, TrendingUp, ArrowRight, Award, Brain, BarChart3, Sparkles, Flame } from "lucide-react"
 import { getRecommendationsForUser, getInsightsForUser } from "@/lib/recommendations"
 import { AiInsights } from "@/components/ai-insights"
 import { getMyStats } from "@/actions/gamification"
@@ -121,22 +121,54 @@ export default async function DashboardPage() {
   return (
     <div className="min-h-screen pt-16 sm:pt-20">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 py-8 space-y-8">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">
-              Welcome back, {displayName}
-            </h1>
-            <p className="text-muted-foreground mt-1">
+        <div className="section-shell hero-mesh relative overflow-hidden rounded-[2rem] px-6 py-8 sm:px-8">
+          <div className="surface-grid absolute inset-0 opacity-35" />
+          <div className="relative flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+            <div className="max-w-3xl">
+              <div className="eyebrow mb-4">
+                <Sparkles className="h-3.5 w-3.5" />
+                Learner cockpit
+              </div>
+              <h1 className="text-4xl text-balance sm:text-5xl">
+                Welcome back, {displayName}
+              </h1>
+              <p className="mt-3 max-w-2xl text-base leading-relaxed text-muted-foreground">
               {inProgressCourses.length > 0
                 ? `You have ${inProgressCourses.length} course${inProgressCourses.length > 1 ? "s" : ""} in progress. Keep going!`
                 : validEnrollments.length === 0
                   ? "Start your learning journey by enrolling in a course."
                   : "Great job! You've completed all your courses."}
-            </p>
+              </p>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-3 lg:min-w-[430px]">
+              <div className="research-panel rounded-[1.4rem] p-4">
+                <div className="text-[11px] uppercase tracking-[0.22em] text-muted-foreground">Average progress</div>
+                <div className="mt-2 text-3xl font-semibold text-foreground">{avgProgress}%</div>
+                <div className="mt-1 text-sm text-muted-foreground">{validEnrollments.length} active enrollment signals</div>
+              </div>
+              <div className="research-panel rounded-[1.4rem] p-4">
+                <div className="flex items-center gap-2 text-[11px] uppercase tracking-[0.22em] text-muted-foreground">
+                  <Flame className="h-3.5 w-3.5" />
+                  Current streak
+                </div>
+                <div className="mt-2 text-3xl font-semibold text-foreground">{stats?.currentStreak ?? 0}</div>
+                <div className="mt-1 text-sm text-muted-foreground">Keep one session alive every day</div>
+              </div>
+              <div className="research-panel rounded-[1.4rem] p-4">
+                <div className="text-[11px] uppercase tracking-[0.22em] text-muted-foreground">Completed lessons</div>
+                <div className="mt-2 text-3xl font-semibold text-foreground">{totalCompletedLessons}</div>
+                <div className="mt-1 text-sm text-muted-foreground">Across {totalLessonsCount} total lessons available</div>
+              </div>
+            </div>
           </div>
-          <Button asChild className="btn-premium">
-            <Link href="/courses">Browse Courses</Link>
-          </Button>
+          <div className="relative mt-6 flex flex-wrap items-center gap-4">
+            <Button asChild className="h-11 rounded-full bg-primary px-6 text-primary-foreground shadow-lg shadow-primary/20 hover:bg-primary/90">
+              <Link href="/courses">Browse Courses</Link>
+            </Button>
+            <Button variant="outline" asChild className="h-11 rounded-full border-border/80 bg-background/70 px-6 backdrop-blur-xl">
+              <Link href="/review">Open Review Queue</Link>
+            </Button>
+          </div>
         </div>
 
         <div className="grid gap-4 grid-cols-2 lg:grid-cols-6">
@@ -354,8 +386,8 @@ export default async function DashboardPage() {
         <div className="border-t pt-6">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-lg font-semibold">Quick Actions</h2>
-              <p className="text-sm text-muted-foreground">Get more from your learning journey</p>
+              <h2 className="text-2xl">Quick Actions</h2>
+              <p className="text-sm text-muted-foreground">Shortcuts for the most useful next moves</p>
             </div>
           </div>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 mt-4">

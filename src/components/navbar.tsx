@@ -15,7 +15,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { createClient } from "@/lib/supabase/client"
-import { Sun, Moon, Menu, X } from "lucide-react"
+import { Sun, Moon, Menu, X, ChevronDown, GraduationCap, Sparkles } from "lucide-react"
 import { NotificationBell } from "@/components/notification-bell"
 import { LanguageSwitcher } from "@/components/language-switcher"
 import { getMyStats } from "@/actions/gamification"
@@ -43,14 +43,15 @@ export function Navbar({ initialUser }: { initialUser?: NavbarUser | null }) {
 
   const isAuthPage = pathname.startsWith("/auth/")
   const isAdmin = pathname.startsWith("/admin")
+  const isDashboard = pathname.startsWith("/dashboard")
 
   const navLinks = [
-    { href: "/", label: t("home") },
-    { href: "/courses", label: t("courses") },
-    { href: "/ebooks", label: "eBooks" },
-    { href: "/about", label: t("about") },
-    { href: "/help", label: "Help" },
-    { href: "/contact", label: t("contact") },
+    { href: "/", label: t("home"), note: "Overview" },
+    { href: "/courses", label: t("courses"), note: "Catalog" },
+    { href: "/ebooks", label: "eBooks", note: "Library" },
+    { href: "/about", label: t("about"), note: "Mission" },
+    { href: "/help", label: "Help", note: "Support" },
+    { href: "/contact", label: t("contact"), note: "Reach us" },
   ]
 
   useEffect(() => {
@@ -107,29 +108,32 @@ export function Navbar({ initialUser }: { initialUser?: NavbarUser | null }) {
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 glass-nav">
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6">
-        <Link href="/" className="flex items-center gap-2.5 group">
-          <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-xs font-bold group-hover:scale-105 transition-transform shadow-lg shadow-indigo-500/20">
+      <div className="mx-auto flex h-18 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6">
+        <Link href="/" className="flex min-w-0 items-center gap-3 group">
+          <div className="flex h-10 w-10 items-center justify-center rounded-2xl border border-primary/15 bg-primary text-[11px] font-semibold tracking-[0.24em] text-primary-foreground shadow-lg shadow-primary/15 transition-transform duration-300 group-hover:-translate-y-0.5">
             EL
           </div>
-          <span className="text-lg font-bold tracking-tight">
-              <span className="gradient-text bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-indigo-400 dark:to-purple-400">
-                EL
-              </span>
-              <span className="text-muted-foreground"> Edu Learn</span>
-          </span>
+          <div className="min-w-0">
+            <p className="text-[11px] uppercase tracking-[0.24em] text-muted-foreground/80">
+              Research-grade learning
+            </p>
+            <span className="block truncate font-heading text-lg leading-none text-foreground">
+              Edu Learn
+            </span>
+          </div>
         </Link>
 
-        <nav className="hidden md:flex items-center gap-1">
+        <nav className="hidden md:flex items-center gap-1 rounded-full border border-border/70 bg-background/65 p-1 shadow-sm backdrop-blur-xl">
           {navLinks.map((link) => (
             <Link
               key={link.href}
               href={link.href}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+              className={`rounded-full px-4 py-2 text-sm font-medium transition-all duration-200 ${
                 pathname === link.href
-                  ? "bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400"
-                  : "text-muted-foreground hover:text-foreground hover:bg-accent"
+                  ? "bg-foreground text-background shadow-sm"
+                  : "text-muted-foreground hover:bg-accent/80 hover:text-foreground"
               }`}
+              title={link.note}
             >
               {link.label}
             </Link>
@@ -137,19 +141,25 @@ export function Navbar({ initialUser }: { initialUser?: NavbarUser | null }) {
           {user?.role === "INSTRUCTOR" && (
             <Link
               href="/instructor"
-              className={`ml-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 bg-gradient-to-r from-indigo-500 to-purple-600 text-white hover:from-indigo-400 hover:to-purple-500 shadow-lg shadow-indigo-500/20 ${
+              className={`ml-2 inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/20 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xl ${
                 pathname.startsWith("/instructor") ? "ring-2 ring-white/30" : ""
               }`}
             >
-              <svg className="h-3.5 w-3.5 inline mr-1.5 -mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M4.26 10.147a60.438 60.438 0 0 0-.491 6.347A48.62 48.62 0 0 1 12 20.904a48.62 48.62 0 0 1 8.232-4.41 60.46 60.46 0 0 0-.491-6.347m-15.482 0a50.636 50.636 0 0 0-2.658-.813A59.906 59.906 0 0 1 12 3.493a59.903 59.903 0 0 1 10.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.717 50.717 0 0 1 12 13.489a50.702 50.702 0 0 1 7.74-3.342" />
-              </svg>
+              <GraduationCap className="h-4 w-4" />
               Teach
             </Link>
           )}
         </nav>
 
         <div className="flex items-center gap-2">
+          {user && !loading && !isDashboard && (
+            <Link
+              href="/dashboard"
+              className="hidden rounded-full border border-border/70 bg-background/65 px-3 py-2 text-xs font-medium text-muted-foreground shadow-sm backdrop-blur-xl transition hover:text-foreground lg:inline-flex"
+            >
+              Learning cockpit
+            </Link>
+          )}
           <LanguageSwitcher />
 
           {mounted && (
@@ -157,7 +167,7 @@ export function Navbar({ initialUser }: { initialUser?: NavbarUser | null }) {
               variant="ghost"
               size="icon"
               onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-              className="h-9 w-9 rounded-full"
+              className="h-9 w-9 rounded-full border border-border/60 bg-background/60"
               aria-label={t("toggleTheme")}
             >
               {theme === "dark" ? (
@@ -173,34 +183,48 @@ export function Navbar({ initialUser }: { initialUser?: NavbarUser | null }) {
               <NotificationBell />
               <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="flex items-center gap-2 h-9 px-2 rounded-full hover:bg-accent">
-                  <Avatar className="h-7 w-7 ring-2 ring-indigo-200 dark:ring-indigo-800">
+                <Button variant="ghost" className="h-11 rounded-full border border-border/70 bg-background/65 px-2.5 hover:bg-accent/80">
+                  <div className="flex items-center gap-2">
+                  <Avatar className="h-7 w-7 ring-2 ring-primary/20">
                     <AvatarImage src={user.image} />
-                    <AvatarFallback className="text-xs bg-indigo-100 dark:bg-indigo-900 text-indigo-600 dark:text-indigo-400">
+                    <AvatarFallback className="bg-primary/10 text-xs text-primary dark:bg-primary/20">
                       {(user.name || "U").split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
-                  <span className="hidden sm:inline text-sm font-medium max-w-[120px] truncate">
-                    {user.name}
-                  </span>
-                  <svg className="h-3.5 w-3.5 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
-                  </svg>
+                    <div className="hidden min-w-0 text-left sm:block">
+                      <div className="max-w-[120px] truncate text-sm font-medium text-foreground">{user.name}</div>
+                      <div className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+                        {user.role}
+                      </div>
+                    </div>
+                    <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
+                  </div>
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48">
-                <div className="px-2 py-1.5 text-sm text-muted-foreground border-b">
+              <DropdownMenuContent align="end" className="w-60 rounded-2xl border-border/70 bg-background/95 p-2 backdrop-blur-xl">
+                <div className="rounded-xl border border-border/60 bg-muted/35 px-3 py-2">
+                  <div className="text-[11px] uppercase tracking-[0.24em] text-muted-foreground">Account</div>
+                  <div className="mt-1 text-sm font-medium text-foreground">{user.name}</div>
+                  <div className="text-xs text-muted-foreground">
                   {user.email}
+                  </div>
                 </div>
                 {stats && (
-                  <div className="px-2 py-1.5 text-xs text-muted-foreground border-b flex items-center gap-1">
-                    <span>{tg("level", { level: stats.level })}</span>
-                    <span>·</span>
-                    <span>{tg("xp", { xp: stats.xp })}</span>
-                    <span>·</span>
-                    <span>{tg("streak", { days: stats.currentStreak })}</span>
+                  <div className="mt-2 rounded-xl border border-primary/10 bg-primary/[0.06] px-3 py-2 text-xs text-muted-foreground">
+                    <div className="mb-1 flex items-center gap-2 font-medium text-foreground">
+                      <Sparkles className="h-3.5 w-3.5 text-primary" />
+                      Learning signal
+                    </div>
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      <span>{tg("level", { level: stats.level })}</span>
+                      <span>·</span>
+                      <span>{tg("xp", { xp: stats.xp })}</span>
+                      <span>·</span>
+                      <span>{tg("streak", { days: stats.currentStreak })}</span>
+                    </div>
                   </div>
                 )}
+                <div className="my-2 h-px bg-border/70" />
                 <DropdownMenuItem asChild>
                   <Link href="/dashboard" className="cursor-pointer">{t("dashboard")}</Link>
                 </DropdownMenuItem>
@@ -255,7 +279,7 @@ export function Navbar({ initialUser }: { initialUser?: NavbarUser | null }) {
               <Button variant="ghost" size="sm" asChild className="hidden sm:inline-flex">
                 <Link href="/auth/login">{tc("signIn")}</Link>
               </Button>
-              <Button size="sm" asChild className="shadow-lg shadow-indigo-500/20 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white border-0">
+              <Button size="sm" asChild className="rounded-full bg-primary px-4 text-primary-foreground shadow-lg shadow-primary/20 hover:-translate-y-0.5 hover:bg-primary/90">
                 <Link href="/auth/register">{t("getStartedFree")}</Link>
               </Button>
             </div>
@@ -273,31 +297,37 @@ export function Navbar({ initialUser }: { initialUser?: NavbarUser | null }) {
       </div>
 
       {menuOpen && (
-        <div className="md:hidden border-t glass-nav animate-slide-up">
-          <div className="px-4 py-3 space-y-1">
+        <div className="animate-slide-up border-t glass-nav md:hidden">
+          <div className="space-y-1 px-4 py-4">
             {navLinks.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
                 onClick={() => setMenuOpen(false)}
-                className={`block px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                className={`block rounded-2xl px-3 py-3 text-sm font-medium transition-colors ${
                   pathname === link.href
-                    ? "bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400"
-                    : "text-muted-foreground hover:text-foreground hover:bg-accent"
+                    ? "bg-foreground text-background"
+                    : "text-muted-foreground hover:bg-accent hover:text-foreground"
                 }`}
               >
-                {link.label}
+                <div>{link.label}</div>
+                <div className={`text-[11px] uppercase tracking-[0.22em] ${pathname === link.href ? "text-background/70" : "text-muted-foreground/70"}`}>
+                  {link.note}
+                </div>
               </Link>
             ))}
             {user?.role === "INSTRUCTOR" && (
               <Link
                 href="/instructor"
                 onClick={() => setMenuOpen(false)}
-                className={`block px-3 py-2 rounded-lg text-sm font-semibold transition-colors bg-gradient-to-r from-indigo-500 to-purple-600 text-white ${
+                className={`block rounded-2xl bg-primary px-3 py-3 text-sm font-semibold text-primary-foreground transition-colors ${
                   pathname.startsWith("/instructor") ? "ring-2 ring-white/30" : ""
                 }`}
               >
-                🎓 Teach
+                <div className="flex items-center gap-2">
+                  <GraduationCap className="h-4 w-4" />
+                  Teach
+                </div>
               </Link>
             )}
           </div>

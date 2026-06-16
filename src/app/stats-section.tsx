@@ -3,23 +3,25 @@
 import { AnimatedSection, AnimatedCounter } from "@/components/motion"
 
 const stats = [
-  { value: 10, suffix: "+", label: "Expert-Led Courses" },
-  { value: 30, suffix: "+", label: "Video Lessons" },
-  { value: 100, suffix: "%", label: "Free Access" },
-  { value: 24, suffix: "/7", label: "Community Support" },
+  { value: 10, suffix: "+", label: "Expert-led courses", note: "Curated learning paths with structured modules" },
+  { value: 30, suffix: "+", label: "Video lessons", note: "Designed for repeatable study sessions" },
+  { value: 100, suffix: "%", label: "Free access", note: "Open learning without paywalls at entry" },
+  { value: 24, suffix: "/7", label: "Community support", note: "Peer discussion and instructor guidance" },
 ]
 
 export function StatsSection() {
   return (
-    <AnimatedSection className="border-t border-border/40 py-16 bg-muted/20">
+    <AnimatedSection className="py-8 sm:py-12">
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
+        <div className="section-shell research-panel grid gap-4 rounded-[2rem] p-6 sm:grid-cols-2 sm:p-8 lg:grid-cols-4">
           {stats.map((s) => (
-            <div key={s.label} className="text-center">
-              <div className="text-3xl sm:text-4xl font-bold gradient-text bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500">
+            <div key={s.label} className="rounded-[1.5rem] border border-border/60 bg-background/65 p-5 text-left shadow-sm">
+              <div className="text-[11px] uppercase tracking-[0.22em] text-muted-foreground">Platform signal</div>
+              <div className="mt-4 text-3xl font-semibold gradient-text bg-gradient-to-r from-primary via-indigo-500 to-cyan-500 sm:text-4xl">
                 <AnimatedCounter value={s.value} suffix={s.suffix} />
               </div>
-              <div className="text-sm text-muted-foreground mt-1.5">{s.label}</div>
+              <div className="mt-2 text-base font-medium text-foreground">{s.label}</div>
+              <div className="mt-1 text-sm text-muted-foreground">{s.note}</div>
             </div>
           ))}
         </div>

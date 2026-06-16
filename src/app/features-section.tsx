@@ -46,13 +46,16 @@ export function FeaturesSection() {
   return (
     <AnimatedSection className="py-24">
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
-        <div className="text-center max-w-2xl mx-auto mb-14">
-          <Badge variant="secondary" className="mb-4">Why Choose Edu Learn</Badge>
-          <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">
-            Everything you need to succeed
+        <div className="mx-auto mb-14 max-w-2xl text-center">
+          <Badge variant="secondary" className="mb-4 rounded-full border border-primary/10 bg-primary/[0.06] px-4 py-1.5 text-[11px] uppercase tracking-[0.22em] text-primary">
+            Why learners stay
+          </Badge>
+          <h2 className="text-4xl text-balance sm:text-5xl">
+            A learning system that feels guided from the first click.
           </h2>
-          <p className="mt-3 text-muted-foreground">
-            A premium learning experience designed for modern learners.
+          <p className="mt-4 text-base leading-relaxed text-muted-foreground">
+            Each surface is built to reduce friction: study clearly, revisit concepts, and
+            keep momentum without hunting for the next step.
           </p>
         </div>
 
@@ -68,15 +71,22 @@ export function FeaturesSection() {
               key={f.title}
               variants={fadeInUp}
               custom={i}
-              className="group relative p-6 rounded-2xl border border-border/50 bg-card/30 backdrop-blur-sm hover:border-indigo-200/50 dark:hover:border-indigo-800/50 hover:shadow-lg hover:shadow-indigo-500/5 transition-all duration-300"
+              className="group research-panel relative overflow-hidden rounded-[1.8rem] p-6 transition-all duration-300 hover:-translate-y-1"
             >
-              <div className={`h-11 w-11 rounded-xl bg-gradient-to-br ${f.gradient} p-2.5 flex items-center justify-center mb-4 group-hover:scale-110 group-hover:shadow-lg transition-all duration-300`}>
+              <div className="absolute right-5 top-5 text-[11px] uppercase tracking-[0.22em] text-muted-foreground/70">
+                {String(i + 1).padStart(2, "0")}
+              </div>
+              <div className={`mb-5 flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br ${f.gradient} p-2.5 shadow-lg transition-all duration-300 group-hover:scale-110`}>
                 <svg className="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d={f.icon} />
                 </svg>
               </div>
-              <h3 className="font-semibold text-base mb-2">{f.title}</h3>
-              <p className="text-sm text-muted-foreground leading-relaxed">{f.desc}</p>
+              <h3 className="mb-3 text-2xl leading-tight text-balance">{f.title}</h3>
+              <p className="text-sm leading-relaxed text-muted-foreground">{f.desc}</p>
+              <div className="mt-6 h-px w-full bg-gradient-to-r from-primary/20 via-border to-transparent" />
+              <div className="mt-4 text-xs uppercase tracking-[0.22em] text-muted-foreground">
+                Study signal / workflow upgrade
+              </div>
             </motion.div>
           ))}
         </motion.div>
