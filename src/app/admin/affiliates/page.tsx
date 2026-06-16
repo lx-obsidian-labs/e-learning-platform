@@ -1,11 +1,11 @@
 import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { redirect } from "next/navigation"
-import { getAdminAffiliates, approveAffiliateCommission } from "@/actions/affiliates"
+import { getAdminAffiliates } from "@/actions/affiliates"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
 import { Users, DollarSign, Gift } from "lucide-react"
+import { ApproveButton } from "./approve-button"
 
 export const dynamic = "force-dynamic"
 
@@ -109,13 +109,7 @@ async function AffiliateReferrals({ affiliateId }: { affiliateId: string }) {
                 </Badge>
               </td>
               <td className="py-2">
-                {ref.status === "pending" && (
-                  <form action={approveAffiliateCommission.bind(null, ref.id)}>
-                    <Button size="sm" variant="outline" className="text-emerald-600">
-                      Approve
-                    </Button>
-                  </form>
-                )}
+                {ref.status === "pending" && <ApproveButton referralId={ref.id} />}
               </td>
             </tr>
           ))}
