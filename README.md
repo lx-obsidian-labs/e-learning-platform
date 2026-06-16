@@ -1,9 +1,9 @@
 
 ₿─── Edu Learn ──────────────────────────────────────────────────────────────
 
-  A full-stack AI-powered e-learning platform with gamification, spaced
-  repetition, adaptive reviews, social learning, and blockchain-verified
-  certificates.
+  A mobile-first, full-stack AI-powered e-learning platform with a premium
+  responsive UI, gamification, spaced repetition, adaptive reviews, social
+  learning, blockchain-verified certificates, and multi-language support.
 
   Built by LX Obsidian Labs — Founder & Lead Developer: Siphesihle Nathan Vilane
 
@@ -43,6 +43,7 @@ The platform is built on Next.js 16 with Supabase for authentication and
 data storage, and is fully deployable on Vercel with zero configuration.
 
 Key differentiators:
+  • Mobile-first responsive UI — premium design system at every breakpoint
   • AI-powered features (NVIDIA/OpenAI) — no additional AI infra needed
   • Gamification engine (XP, levels, streaks, badges, leaderboards)
   • SM-2 adaptive review system for long-term retention
