@@ -43,7 +43,6 @@ export function Navbar({ initialUser }: { initialUser?: NavbarUser | null }) {
 
   const isAuthPage = pathname.startsWith("/auth/")
   const isAdmin = pathname.startsWith("/admin")
-  const isInstructor = pathname.startsWith("/instructor")
 
   const navLinks = [
     { href: "/", label: t("home") },
@@ -62,15 +61,26 @@ export function Navbar({ initialUser }: { initialUser?: NavbarUser | null }) {
     }
 
     const supabase = createClient()
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED") {
         if (session?.user) {
-          setUser({
-            id: session.user.id,
-            email: session.user.email ?? undefined,
-            name: session.user.email?.split("@")[0] || "User",
-            role: "STUDENT",
-          })
+          try {
+            const res = await fetch("/api/user/role")
+            const data = await res.json()
+            setUser({
+              id: session.user.id,
+              email: session.user.email ?? undefined,
+              name: session.user.email?.split("@")[0] || "User",
+              role: data.role || "STUDENT",
+            })
+          } catch {
+            setUser({
+              id: session.user.id,
+              email: session.user.email ?? undefined,
+              name: session.user.email?.split("@")[0] || "User",
+              role: "STUDENT",
+            })
+          }
         }
         setLoading(false)
       } else if (event === "SIGNED_OUT") {
@@ -84,7 +94,7 @@ export function Navbar({ initialUser }: { initialUser?: NavbarUser | null }) {
 
   useEffect(() => { getMyStats().then(setStats) }, [])
 
-  if (isAuthPage || isAdmin || isInstructor) return null
+  if (isAuthPage || isAdmin) return null
 
   async function handleSignOut() {
     const supabase = createClient()
@@ -123,6 +133,19 @@ export function Navbar({ initialUser }: { initialUser?: NavbarUser | null }) {
               {link.label}
             </Link>
           ))}
+          {user?.role === "INSTRUCTOR" && (
+            <Link
+              href="/instructor"
+              className={`ml-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 bg-gradient-to-r from-indigo-500 to-purple-600 text-white hover:from-indigo-400 hover:to-purple-500 shadow-lg shadow-indigo-500/20 ${
+                pathname.startsWith("/instructor") ? "ring-2 ring-white/30" : ""
+              }`}
+            >
+              <svg className="h-3.5 w-3.5 inline mr-1.5 -mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4.26 10.147a60.438 60.438 0 0 0-.491 6.347A48.62 48.62 0 0 1 12 20.904a48.62 48.62 0 0 1 8.232-4.41 60.46 60.46 0 0 0-.491-6.347m-15.482 0a50.636 50.636 0 0 0-2.658-.813A59.906 59.906 0 0 1 12 3.493a59.903 59.903 0 0 1 10.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.717 50.717 0 0 1 12 13.489a50.702 50.702 0 0 1 7.74-3.342" />
+              </svg>
+              Teach
+            </Link>
+          )}
         </nav>
 
         <div className="flex items-center gap-2">
@@ -187,8 +210,10 @@ export function Navbar({ initialUser }: { initialUser?: NavbarUser | null }) {
                   <Link href="/analytics" className="cursor-pointer">{t("analytics")}</Link>
                 </DropdownMenuItem>
                 {user.role === "INSTRUCTOR" && (
-                  <DropdownMenuItem asChild>
-                    <Link href="/instructor" className="cursor-pointer">{t("instructorPanel")}</Link>
+                  <DropdownMenuItem asChild className="bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-950/30 dark:to-purple-950/30 font-medium">
+                    <Link href="/instructor" className="cursor-pointer">
+                      🎓 {t("instructorPanel")}
+                    </Link>
                   </DropdownMenuItem>
                 )}
                 {user.role === "ADMIN" && (
@@ -269,6 +294,17 @@ export function Navbar({ initialUser }: { initialUser?: NavbarUser | null }) {
                 {link.label}
               </Link>
             ))}
+            {user?.role === "INSTRUCTOR" && (
+              <Link
+                href="/instructor"
+                onClick={() => setMenuOpen(false)}
+                className={`block px-3 py-2 rounded-lg text-sm font-semibold transition-colors bg-gradient-to-r from-indigo-500 to-purple-600 text-white ${
+                  pathname.startsWith("/instructor") ? "ring-2 ring-white/30" : ""
+                }`}
+              >
+                🎓 Teach
+              </Link>
+            )}
           </div>
         </div>
       )}
