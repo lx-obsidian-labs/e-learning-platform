@@ -172,7 +172,7 @@ export default async function DashboardPage() {
                   <span>🔥 Streak: {stats.currentStreak} days</span>
                   <span>🏅 {stats.badges.length} badges</span>
                 </div>
-                <Link href="/leaderboard" className="text-xs text-primary hover:underline block">
+                <Link href="/badges" className="text-xs text-primary hover:underline block">
                   View All Badges →
                 </Link>
               </CardContent>

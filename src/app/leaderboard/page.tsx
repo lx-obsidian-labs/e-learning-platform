@@ -1,3 +1,4 @@
+import Link from "next/link"
 import { getXpLeaderboard } from "@/actions/gamification"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
@@ -80,6 +81,12 @@ export default async function LeaderboardPage() {
             No learners on the leaderboard yet. Start learning to be the first!
           </div>
         )}
+
+        <div className="text-center mt-8">
+          <Link href="/badges" className="text-sm text-primary hover:underline">
+            View all badges →
+          </Link>
+        </div>
       </div>
     </div>
   )
