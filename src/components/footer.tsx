@@ -16,7 +16,6 @@ export function Footer() {
   const footerLinks = {
     [t("platform")]: [
       { href: "/courses", label: t("browseCourses") },
-      { href: "/pricing", label: t("pricing") },
       { href: "/about", label: t("aboutUs") },
       { href: "/contact", label: t("contact") },
     ],

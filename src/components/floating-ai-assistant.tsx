@@ -6,9 +6,7 @@ import { Input } from "@/components/ui/input"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { MessageCircle, Volume2, VolumeX } from "lucide-react"
-import { VoiceInput } from "@/components/voice-input"
-import { VoiceOutput } from "@/components/voice-output"
+import { MessageCircle } from "lucide-react"
 
 type Message = {
   role: "user" | "assistant"
@@ -22,8 +20,6 @@ export function FloatingAiAssistant() {
   ])
   const [input, setInput] = useState("")
   const [loading, setLoading] = useState(false)
-  const [voiceEnabled, setVoiceEnabled] = useState(false)
-  const [lastResponse, setLastResponse] = useState("")
   const scrollRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement | null>(null)
 
@@ -60,7 +56,6 @@ export function FloatingAiAssistant() {
       const data = await res.json()
       if (data.reply) {
         setMessages((prev) => [...prev, { role: "assistant", content: data.reply }])
-        setLastResponse(data.reply)
       } else {
         setMessages((prev) => [
           ...prev,
@@ -74,10 +69,6 @@ export function FloatingAiAssistant() {
       ])
     }
     setLoading(false)
-  }
-
-  function handleVoiceInput(text: string) {
-    setInput(text)
   }
 
   return (
@@ -105,17 +96,6 @@ export function FloatingAiAssistant() {
             </Avatar>
             AI Assistant
           </SheetTitle>
-          <Button
-            type="button"
-            size="icon"
-            variant="ghost"
-            className="h-7 w-7 rounded-full ml-auto"
-            onClick={() => setVoiceEnabled(!voiceEnabled)}
-            aria-label={voiceEnabled ? "Disable voice output" : "Enable voice output"}
-            title={voiceEnabled ? "Disable voice" : "Enable voice"}
-          >
-            {voiceEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
-          </Button>
         </SheetHeader>
 
         <ScrollArea ref={scrollRef} className="flex-1 px-4 py-3">
@@ -158,7 +138,6 @@ export function FloatingAiAssistant() {
         </ScrollArea>
 
         <form onSubmit={handleSend} className="border-t p-4 flex gap-2">
-          <VoiceInput onTranscribe={handleVoiceInput} disabled={loading} />
           <Input
             value={input}
             onChange={(e) => setInput(e.target.value)}
@@ -171,8 +150,6 @@ export function FloatingAiAssistant() {
             Send
           </Button>
         </form>
-
-        <VoiceOutput text={lastResponse} enabled={voiceEnabled} />
       </SheetContent>
     </Sheet>
   )
