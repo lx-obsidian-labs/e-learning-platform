@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tag, Calendar, Users, Percent, DollarSign } from "lucide-react"
-import { deleteCoupon } from "@/actions/coupons"
+import { DisableButton } from "./disable-button"
 
 export const dynamic = "force-dynamic"
 
@@ -88,13 +88,7 @@ export default async function AdminCouponsPage() {
                         </Badge>
                       </td>
                       <td className="py-3">
-                        {coupon.active && (
-                          <form action={deleteCoupon.bind(null, coupon.id)}>
-                            <Button variant="ghost" size="sm" className="text-red-500 hover:text-red-700">
-                              Disable
-                            </Button>
-                          </form>
-                        )}
+                        {coupon.active && <DisableButton couponId={coupon.id} />}
                       </td>
                     </tr>
                   ))}
