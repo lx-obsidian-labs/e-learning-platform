@@ -48,6 +48,7 @@ export function Navbar({ initialUser }: { initialUser?: NavbarUser | null }) {
     { href: "/", label: t("home") },
     { href: "/courses", label: t("courses") },
     { href: "/about", label: t("about") },
+    { href: "/help", label: "Help" },
     { href: "/contact", label: t("contact") },
   ]
 
