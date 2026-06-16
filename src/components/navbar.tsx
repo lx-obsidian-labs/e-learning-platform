@@ -16,6 +16,7 @@ import {
 import { createClient } from "@/lib/supabase/client"
 import { Sun, Moon, Menu, X } from "lucide-react"
 import { NotificationBell } from "@/components/notification-bell"
+import { getMyStats } from "@/actions/gamification"
 
 export type NavbarUser = {
   id: string
@@ -41,6 +42,7 @@ export function Navbar({ initialUser }: { initialUser?: NavbarUser | null }) {
   const [menuOpen, setMenuOpen] = useState(false)
   const [user, setUser] = useState<NavbarUser | null>(initialUser ?? null)
   const [loading, setLoading] = useState(!initialUser)
+  const [stats, setStats] = useState<{ level: number; xp: number; xpForNext: number; currentStreak: number } | null>(null)
 
   const isAuthPage = pathname.startsWith("/auth/")
   const isAdmin = pathname.startsWith("/admin")
@@ -74,6 +76,8 @@ export function Navbar({ initialUser }: { initialUser?: NavbarUser | null }) {
 
     return () => subscription.unsubscribe()
   }, [])
+
+  useEffect(() => { getMyStats().then(setStats) }, [])
 
   if (isAuthPage || isAdmin || isInstructor) return null
 
@@ -157,6 +161,15 @@ export function Navbar({ initialUser }: { initialUser?: NavbarUser | null }) {
                 <div className="px-2 py-1.5 text-sm text-muted-foreground border-b">
                   {user.email}
                 </div>
+                {stats && (
+                  <div className="px-2 py-1.5 text-xs text-muted-foreground border-b flex items-center gap-1">
+                    <span>Lv.{stats.level}</span>
+                    <span>·</span>
+                    <span>XP {stats.xp}</span>
+                    <span>·</span>
+                    <span>🔥{stats.currentStreak}</span>
+                  </div>
+                )}
                 <DropdownMenuItem asChild>
                   <Link href="/dashboard" className="cursor-pointer">Dashboard</Link>
                 </DropdownMenuItem>
@@ -175,6 +188,9 @@ export function Navbar({ initialUser }: { initialUser?: NavbarUser | null }) {
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
                   <Link href="/notifications" className="cursor-pointer">Notifications</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/leaderboard" className="cursor-pointer">Leaderboard</Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
                   <Link href="/settings" className="cursor-pointer">Settings</Link>

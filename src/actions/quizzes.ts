@@ -5,6 +5,7 @@ import { getCurrentUserWithRole } from "@/actions/auth"
 import { revalidatePath } from "next/cache"
 import { randomUUID } from "crypto"
 import { z } from "zod"
+import { awardQuizXp, updateStreak } from "@/actions/gamification"
 
 const quizSchema = z.object({
   title: z.string().min(1),
@@ -503,6 +504,11 @@ export async function submitQuizAttempt(
       .single()
 
     if (attemptError) return { error: "Failed to submit quiz" }
+
+    if (score === total) {
+      awardQuizXp(quizId, score, total).catch(() => {})
+    }
+    updateStreak().catch(() => {})
 
     const { createNotification } = await import("@/actions/notifications")
     await createNotification(user.id, "Quiz submitted!", `You scored ${score}/${total} on "${quiz.title}"`)

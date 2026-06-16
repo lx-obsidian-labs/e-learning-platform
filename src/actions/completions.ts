@@ -4,6 +4,7 @@ import { createAdminClient } from "@/lib/supabase/admin"
 import { getCurrentUserWithRole } from "@/actions/auth"
 import { revalidatePath } from "next/cache"
 import { randomUUID } from "crypto"
+import { awardLessonXp, updateStreak } from "@/actions/gamification"
 
 export async function markLessonComplete(lessonId: string) {
   const user = await getCurrentUserWithRole()
@@ -56,6 +57,9 @@ export async function markLessonComplete(lessonId: string) {
         .insert({ id: randomUUID(), userId: user.id, lessonId })
 
       if (insertError) return { error: "Failed to mark lesson complete" }
+
+      awardLessonXp(lessonId).catch(() => {})
+      updateStreak().catch(() => {})
 
       const { createNotification } = await import("@/actions/notifications")
       await createNotification(user.id, "Lesson completed!", `You completed "${lesson.title}"`)

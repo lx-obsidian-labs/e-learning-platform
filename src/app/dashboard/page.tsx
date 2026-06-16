@@ -7,9 +7,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { StatCard } from "@/components/dashboard/stat-card"
 import { ProgressCard } from "@/components/dashboard/progress-card"
-import { BookOpen, Clock, CheckCircle, TrendingUp, ArrowRight } from "lucide-react"
+import { BookOpen, Clock, CheckCircle, TrendingUp, ArrowRight, Award } from "lucide-react"
 import { getRecommendationsForUser, getInsightsForUser } from "@/lib/recommendations"
 import { AiInsights } from "@/components/ai-insights"
+import { getMyStats } from "@/actions/gamification"
 
 export const dynamic = "force-dynamic"
 
@@ -86,6 +87,9 @@ export default async function DashboardPage() {
 
   const totalCompletedLessons = completedLessonIds?.length || 0
 
+  // Get gamification stats
+  const stats = await getMyStats()
+
   // Get AI recommendations (best-effort)
   let recommendations: any[] = []
   try {
@@ -122,7 +126,7 @@ export default async function DashboardPage() {
           </Button>
         </div>
 
-        <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-4 grid-cols-2 lg:grid-cols-5">
           <StatCard
             title="Enrolled"
             value={validEnrollments.length}
@@ -152,6 +156,28 @@ export default async function DashboardPage() {
             className="border-l-amber-500"
             iconClassName="bg-amber-100 text-amber-600"
           />
+          {stats && (
+            <Card className="border-l-rose-500">
+              <CardContent className="p-4 space-y-2">
+                <div className="flex items-center gap-2">
+                  <div className="h-8 w-8 rounded-lg bg-rose-100 dark:bg-rose-900/50 flex items-center justify-center">
+                    <Award className="h-4 w-4 text-rose-600 dark:text-rose-400" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Level {stats.level}</p>
+                    <p className="text-lg font-bold">{stats.xp} XP</p>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between text-xs text-muted-foreground">
+                  <span>🔥 Streak: {stats.currentStreak} days</span>
+                  <span>🏅 {stats.badges.length} badges</span>
+                </div>
+                <Link href="/leaderboard" className="text-xs text-primary hover:underline block">
+                  View All Badges →
+                </Link>
+              </CardContent>
+            </Card>
+          )}
         </div>
 
         {validEnrollments.length === 0 ? (
