@@ -4,7 +4,7 @@ import { createAdminClient } from "@/lib/supabase/admin"
 import { getCurrentUserWithRole } from "@/actions/auth"
 import { revalidatePath } from "next/cache"
 import { parseJSONCourses, parseCSVCourses, validateCourse } from "@/lib/course-importer"
-import type { ImportedCourse, ImportedQuiz } from "@/lib/course-importer"
+import type { ImportedCourse, ImportedQuiz, ImportedModule, ImportedLesson } from "@/lib/course-importer"
 
 import { randomUUID } from "crypto"
 
@@ -14,31 +14,95 @@ function slugify(text: string) {
 
 const now = () => new Date().toISOString()
 
-async function importQuiz(admin: ReturnType<typeof createAdminClient>, moduleId: string, quiz: ImportedQuiz) {
+type ImportReport = {
+  title: string
+  status: "imported" | "skipped" | "error"
+  error?: string
+  details?: {
+    modules: number
+    lessons: number
+    quizzes: number
+  }
+}
+
+async function importQuiz(
+  admin: ReturnType<typeof createAdminClient>,
+  moduleId: string,
+  quiz: ImportedQuiz
+): Promise<{ success: boolean; error?: string }> {
   const { data: quizRecord, error: quizErr } = await admin
     .from("quizzes")
-    .insert({ id: randomUUID(), title: quiz.title, description: quiz.description || null, passingScore: quiz.passingScore || null, moduleId })
+    .insert({
+      id: randomUUID(),
+      title: quiz.title,
+      description: quiz.description || null,
+      passingScore: quiz.passingScore || null,
+      moduleId,
+    })
     .select('"id"')
     .single()
 
-  if (quizErr || !quizRecord) return { error: "Failed creating quiz" }
+  if (quizErr || !quizRecord) return { success: false, error: `Failed creating quiz: ${quizErr?.message || "Unknown"}` }
 
   for (let qi = 0; qi < quiz.questions.length; qi++) {
     const q = quiz.questions[qi]
-    const { data: questionRecord } = await admin
+    const { data: questionRecord, error: qErr } = await admin
       .from("quiz_questions")
-      .insert({ id: randomUUID(), text: q.text, type: q.type, points: q.points || 1, order: qi + 1, quizId: quizRecord.id })
+      .insert({
+        id: randomUUID(),
+        text: q.text,
+        type: q.type,
+        points: q.points || 1,
+        order: qi + 1,
+        quizId: quizRecord.id,
+      })
       .select('"id"')
       .single()
 
-    if (questionRecord && q.options) {
+    if (qErr || !questionRecord) return { success: false, error: `Failed creating question: ${q.text}` }
+
+    if (q.options) {
       for (const opt of q.options) {
-        await admin.from("quiz_answer_options").insert({ id: randomUUID(), text: opt.text, isCorrect: opt.isCorrect, questionId: questionRecord.id })
+        const { error: optErr } = await admin.from("quiz_answer_options").insert({
+          id: randomUUID(),
+          text: opt.text,
+          isCorrect: opt.isCorrect,
+          questionId: questionRecord.id,
+        })
+        if (optErr) return { success: false, error: `Failed creating option: ${optErr.message}` }
       }
     }
   }
 
   return { success: true }
+}
+
+export async function previewImport(raw: string, format: "json" | "csv") {
+  const user = await getCurrentUserWithRole()
+  if (!user || user.role === "STUDENT") return { error: "Unauthorized" }
+
+  let courses: ImportedCourse[]
+  try {
+    courses = format === "json" ? parseJSONCourses(raw) : parseCSVCourses(raw)
+  } catch {
+    return { error: "Failed to parse file" }
+  }
+
+  if (!courses.length) return { error: "No courses found" }
+
+  const preview = courses.map((course) => {
+    const validationError = validateCourse(course)
+    return {
+      title: course.title,
+      valid: !validationError,
+      error: validationError,
+      modules: course.modules.length,
+      lessons: course.modules.reduce((sum, m) => sum + m.lessons.length, 0),
+      quizzes: course.modules.filter((m) => m.quiz).length,
+    }
+  })
+
+  return { courses: preview, total: preview.length, valid: preview.filter((p) => p.valid).length }
 }
 
 export async function importCourses(raw: string, format: "json" | "csv") {
@@ -56,7 +120,7 @@ export async function importCourses(raw: string, format: "json" | "csv") {
 
   if (!courses.length) return { error: "No courses found" }
 
-  const results: { title: string; status: string; error?: string }[] = []
+  const results: ImportReport[] = []
 
   for (const course of courses) {
     const validationError = validateCourse(course)
@@ -85,15 +149,20 @@ export async function importCourses(raw: string, format: "json" | "csv") {
       if (cat) {
         categoryId = cat.id
       } else {
-        const { data: newCat } = await admin.from("categories").insert({ id: randomUUID(), name: course.category, slug: catSlug, updatedAt: now() }).select('"id"').single()
+        const { data: newCat } = await admin
+          .from("categories")
+          .insert({ id: randomUUID(), name: course.category, slug: catSlug, updatedAt: now() })
+          .select('"id"')
+          .single()
         if (newCat) categoryId = newCat.id
       }
     }
 
+    const courseId = randomUUID()
     const { data: newCourse, error: courseErr } = await admin
       .from("courses")
       .insert({
-        id: randomUUID(),
+        id: courseId,
         title: course.title,
         slug,
         description: course.description,
@@ -109,28 +178,45 @@ export async function importCourses(raw: string, format: "json" | "csv") {
       .single()
 
     if (courseErr || !newCourse) {
-      results.push({ title: course.title, status: "error", error: courseErr?.message || "Failed" })
+      results.push({ title: course.title, status: "error", error: courseErr?.message || "Failed to create course" })
       continue
     }
 
+    const createdModules: string[] = []
+    const createdLessons: string[] = []
+    const createdQuizzes: string[] = []
     let importFailed = false
+    let failureReason = ""
+
     for (let mi = 0; mi < course.modules.length; mi++) {
       const mod = course.modules[mi]
       const modId = randomUUID()
       const { data: newModule, error: modErr } = await admin
         .from("modules")
-        .insert({ id: modId, title: mod.title, description: mod.description || null, order: mi + 1, courseId: newCourse.id })
+        .insert({
+          id: modId,
+          title: mod.title,
+          description: mod.description || null,
+          order: mi + 1,
+          courseId: newCourse.id,
+        })
         .select('"id"')
         .single()
 
-      if (modErr || !newModule) { importFailed = true; break }
+      if (modErr || !newModule) {
+        importFailed = true
+        failureReason = `Failed creating module "${mod.title}": ${modErr?.message || "Unknown"}`
+        break
+      }
+      createdModules.push(modId)
 
       for (let li = 0; li < mod.lessons.length; li++) {
         const lesson = mod.lessons[li]
+        const lessonId = randomUUID()
         const { error: lessonErr } = await admin
           .from("lessons")
           .insert({
-            id: randomUUID(),
+            id: lessonId,
             title: lesson.title,
             content: lesson.content || null,
             videoUrl: lesson.videoUrl || null,
@@ -141,23 +227,71 @@ export async function importCourses(raw: string, format: "json" | "csv") {
             updatedAt: now(),
           })
 
-        if (lessonErr) { importFailed = true; break }
+        if (lessonErr) {
+          importFailed = true
+          failureReason = `Failed creating lesson "${lesson.title}": ${lessonErr.message}`
+          break
+        }
+        createdLessons.push(lessonId)
       }
 
       if (importFailed) break
 
       if (mod.quiz) {
-        await importQuiz(admin, newModule.id, mod.quiz)
+        const quizResult = await importQuiz(admin, newModule.id, mod.quiz)
+        if (!quizResult.success) {
+          importFailed = true
+          failureReason = quizResult.error || "Failed creating quiz"
+          break
+        }
+        createdQuizzes.push(mod.quiz.title)
       }
+    }
+
+    if (importFailed) {
+      // Cleanup: remove all created data in reverse order
+      for (const quizTitle of createdQuizzes) {
+        // quizzes cascade to questions and options
+      }
+      for (const lessonId of createdLessons) {
+        await admin.from("lessons").delete().eq('"id"', lessonId)
+      }
+      for (const modId of createdModules) {
+        await admin.from("modules").delete().eq('"id"', modId)
+      }
+      await admin.from("courses").delete().eq('"id"', courseId)
+
+      results.push({ title: course.title, status: "error", error: failureReason })
+      continue
     }
 
     results.push({
       title: course.title,
-      status: importFailed ? "error" : "imported",
-      error: importFailed ? "Failed during module/lesson creation" : undefined,
+      status: "imported",
+      details: {
+        modules: createdModules.length,
+        lessons: createdLessons.length,
+        quizzes: createdQuizzes.length,
+      },
     })
   }
 
   revalidatePath("/admin/courses")
   return { results }
+}
+
+export async function importCourseFromUrl(url: string) {
+  const user = await getCurrentUserWithRole()
+  if (!user || user.role === "STUDENT") return { error: "Unauthorized" }
+
+  try {
+    const res = await fetch(url, { signal: AbortSignal.timeout(10000) })
+    if (!res.ok) return { error: `Failed to fetch: ${res.status}` }
+    const text = await res.text()
+
+    const format = url.endsWith(".csv") ? "csv" : "json"
+    return importCourses(text, format)
+  } catch {
+    return { error: "Failed to fetch course data from URL" }
+  }
 }
