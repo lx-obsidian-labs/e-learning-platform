@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { updateUserRole, deleteUser } from "@/actions/admin-users"
+import { updateUserRole } from "@/actions/admin"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -28,8 +28,9 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Search, MoreHorizontal, Shield, ShieldOff } from "lucide-react"
+import { Search, MoreHorizontal, Shield, ShieldOff, ChevronLeft, ChevronRight } from "lucide-react"
 import { toast } from "sonner"
+import Link from "next/link"
 
 type User = {
   id: string
@@ -37,13 +38,14 @@ type User = {
   email: string
   image: string | null
   role: string
-  bio: string | null
   createdAt: string
 }
 
 type Props = {
   users: User[]
   total: number
+  page: number
+  pageSize: number
 }
 
 const roleBadge: Record<string, string> = {
@@ -52,15 +54,23 @@ const roleBadge: Record<string, string> = {
   ADMIN: "bg-purple-100 text-purple-700 dark:bg-purple-900/50 dark:text-purple-400",
 }
 
-export function UserTable({ users, total }: Props) {
+export function UserTable({ users, total, page, pageSize }: Props) {
   const [search, setSearch] = useState("")
   const [roleFilter, setRoleFilter] = useState("ALL")
   const router = useRouter()
+
+  const totalPages = Math.ceil(total / pageSize)
 
   function handleFilter() {
     const params = new URLSearchParams()
     if (search) params.set("search", search)
     if (roleFilter && roleFilter !== "ALL") params.set("role", roleFilter)
+    router.push(`/admin/users?${params.toString()}`)
+  }
+
+  function goToPage(p: number) {
+    const params = new URLSearchParams(window.location.search)
+    params.set("page", String(p))
     router.push(`/admin/users?${params.toString()}`)
   }
 
@@ -71,17 +81,6 @@ export function UserTable({ users, total }: Props) {
       router.refresh()
     } else {
       toast.error(result.error || "Failed to update role")
-    }
-  }
-
-  async function handleDelete(userId: string, userName: string) {
-    if (!confirm(`Delete user "${userName || userId}"? This cannot be undone.`)) return
-    const result = await deleteUser(userId)
-    if (result.success) {
-      toast.success("User deleted")
-      router.refresh()
-    } else {
-      toast.error(result.error || "Failed to delete user")
     }
   }
 
@@ -179,12 +178,6 @@ export function UserTable({ users, total }: Props) {
                             Demote to Student
                           </DropdownMenuItem>
                         )}
-                        <DropdownMenuItem
-                          className="text-destructive"
-                          onClick={() => handleDelete(u.id, u.name || u.email)}
-                        >
-                          Delete User
-                        </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>
@@ -195,9 +188,34 @@ export function UserTable({ users, total }: Props) {
         </Table>
       </div>
 
-      <p className="text-sm text-muted-foreground">
-        Showing {users.length} of {total} users
-      </p>
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between">
+          <p className="text-sm text-muted-foreground">
+            Showing {users.length} of {total} users
+          </p>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={page <= 1}
+              onClick={() => goToPage(page - 1)}
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <span className="text-sm text-muted-foreground">
+              Page {page} of {totalPages}
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={page >= totalPages}
+              onClick={() => goToPage(page + 1)}
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
