@@ -127,7 +127,7 @@ export async function importEdxCourse(courseId: string) {
 
     const { data: newCourse, error } = await createCourseInDb(admin, staticData.title, staticData.description, user.id, {
       source: "edx",
-      sourceUrl: staticData.url || `https://www.edx.org`,
+      sourceUrl: `https://www.edx.org`,
       sourceName: staticData.instructor || "edX",
     })
     if (error || !newCourse) return { error: "Failed to create course" }
