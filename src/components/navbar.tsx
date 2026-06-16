@@ -47,6 +47,7 @@ export function Navbar({ initialUser }: { initialUser?: NavbarUser | null }) {
   const navLinks = [
     { href: "/", label: t("home") },
     { href: "/courses", label: t("courses") },
+    { href: "/ebooks", label: "eBooks" },
     { href: "/about", label: t("about") },
     { href: "/help", label: "Help" },
     { href: "/contact", label: t("contact") },
