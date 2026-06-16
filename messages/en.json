@@ -1,0 +1,185 @@
+{
+  "metadata": {
+    "title": "Edu Learn - Master New Skills With Expert-Led Courses",
+    "description": "Access high-quality video lessons, interactive quizzes, and earn verified certificates — all completely free."
+  },
+  "common": {
+    "appName": "Edu Learn",
+    "appInitials": "EL",
+    "loading": "Loading...",
+    "error": "Something went wrong",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "search": "Search",
+    "close": "Close",
+    "back": "Back",
+    "viewAll": "View all",
+    "learnMore": "Learn more",
+    "getStarted": "Get started free",
+    "signIn": "Sign in",
+    "signOut": "Sign out",
+    "submit": "Submit",
+    "continue": "Continue",
+    "noResults": "No results found"
+  },
+  "nav": {
+    "home": "Home",
+    "courses": "Courses",
+    "about": "About",
+    "pricing": "Pricing",
+    "contact": "Contact",
+    "dashboard": "Dashboard",
+    "reviews": "Reviews",
+    "analytics": "Analytics",
+    "instructorPanel": "Instructor Panel",
+    "adminPanel": "Admin Panel",
+    "orders": "Orders",
+    "notifications": "Notifications",
+    "leaderboard": "Leaderboard",
+    "badges": "Badges",
+    "certificates": "Certificates",
+    "studyGroups": "Study Groups",
+    "settings": "Settings",
+    "toggleTheme": "Toggle theme",
+    "getStartedFree": "Get started free"
+  },
+  "footer": {
+    "platform": "Platform",
+    "browseCourses": "Browse Courses",
+    "pricing": "Pricing",
+    "aboutUs": "About Us",
+    "contact": "Contact",
+    "support": "Support",
+    "faq": "FAQ",
+    "termsOfService": "Terms of Service",
+    "privacyPolicy": "Privacy Policy",
+    "disclaimer": "Disclaimer",
+    "compliance": "Compliance",
+    "community": "Community",
+    "teachOn": "Teach on Edu Learn",
+    "discussions": "Discussions",
+    "description": "Edu Learn is a modern e-learning platform offering expert-led courses with AI-powered features, gamification, and verified certificates.",
+    "twitter": "Twitter",
+    "github": "GitHub",
+    "linkedin": "LinkedIn",
+    "copyright": "© {year} Edu Learn. All rights reserved.",
+    "developedBy": "Developed by Edu Learn · Coded by Siphesihle Nathan Vilane"
+  },
+  "home": {
+    "hero": {
+      "badge": "Free & Open Education Platform",
+      "heading": "Master New Skills",
+      "gradientHeading": "With Expert-Led Courses",
+      "subtitle": "Access high-quality video lessons, interactive quizzes, and earn verified certificates — all completely free.",
+      "cta": "Start learning free",
+      "explore": "Explore courses",
+      "demoTitle": "Introduction to Computer Science",
+      "demoSubtitle": "Start your journey here",
+      "demoTime": "0:32 / 12:45"
+    },
+    "features": {
+      "badge": "Why Choose Edu Learn",
+      "heading": "Everything you need to succeed",
+      "subtitle": "A premium learning experience designed for modern learners, powered by cutting-edge AI technology.",
+      "items": [
+        {
+          "title": "AI-Powered Learning",
+          "description": "Personalized recommendations, adaptive reviews, and an intelligent tutor to accelerate your progress."
+        },
+        {
+          "title": "Expert-Led Courses",
+          "description": "Learn from industry professionals with structured curricula designed for real-world skills."
+        },
+        {
+          "title": "Gamified Experience",
+          "description": "Earn XP, unlock badges, maintain streaks, and compete on leaderboards to stay motivated."
+        },
+        {
+          "title": "Verified Certificates",
+          "description": "Earn blockchain-verified certificates upon course completion to showcase your achievements."
+        },
+        {
+          "title": "Study Together",
+          "description": "Join study groups, discuss with peers, and collaborate on your learning journey."
+        },
+        {
+          "title": "Offline Access",
+          "description": "Install as a PWA and access your courses even without an internet connection."
+        }
+      ]
+    },
+    "stats": {
+      "courses": "Expert-Led Courses",
+      "lessons": "Video Lessons",
+      "free": "Free Access",
+      "community": "Community Support"
+    },
+    "testimonials": {
+      "badge": "Testimonials",
+      "heading": "What our learners say",
+      "subtitle": "Join thousands of satisfied learners transforming their careers with Edu Learn.",
+      "items": [
+        {
+          "name": "Sarah Johnson",
+          "role": "Frontend Developer",
+          "content": "Edu Learn completely changed how I approach learning. The AI tutor helped me grasp complex concepts in half the time."
+        },
+        {
+          "name": "Marcus Chen",
+          "role": "Computer Science Student",
+          "content": "The gamification system keeps me motivated. I've maintained a 50-day streak and earned 12 badges!"
+        },
+        {
+          "name": "Priya Patel",
+          "role": "Data Analyst",
+          "content": "The spaced repetition reviews are a game-changer. I retain information much better than with traditional courses."
+        },
+        {
+          "name": "James Wilson",
+          "role": "Self-Taught Developer",
+          "content": "Best free learning platform I've found. The blockchain certificates add real credibility to my portfolio."
+        }
+      ]
+    },
+    "featuredCourses": {
+      "badge": "Featured Courses",
+      "heading": "Start learning today",
+      "subtitle": "Choose from our curated selection of high-quality courses, all available for free.",
+      "browseAll": "Browse all courses",
+      "viewCourse": "View course →",
+      "free": "Free"
+    },
+    "aiSection": {
+      "badge": "AI-Powered",
+      "heading": "Learn smarter with AI",
+      "subtitle": "Get personalized course recommendations, instant answers from the AI tutor, and intelligent insights about your learning patterns.",
+      "askAssistant": "Ask the AI assistant"
+    },
+    "cta": {
+      "heading": "Ready to start learning?",
+      "subtitle": "Join thousands of learners on Edu Learn and transform your future today.",
+      "getStarted": "Get started free",
+      "browseCourses": "Browse courses"
+    }
+  },
+  "gamification": {
+    "level": "Level {level}",
+    "xp": "{xp} XP",
+    "streak": "🔥 Streak: {days} days",
+    "badges": "🏅 {count} badges",
+    "viewAllBadges": "View All Badges →",
+    "xpForNext": "XP for next level"
+  },
+  "reviews": {
+    "title": "Reviews",
+    "due": "{count} reviews due",
+    "completed": "{count} completed",
+    "streak": "{days} day streak",
+    "startReview": "Start Review",
+    "noReviews": "No reviews due. Great job!",
+    "qualityLabel": "How well did you remember?",
+    "submitReview": "Submit Review"
+  }
+}

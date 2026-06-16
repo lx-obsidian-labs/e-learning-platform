@@ -1,6 +1,8 @@
 import type { Metadata } from "next"
 import { Geist, Geist_Mono } from "next/font/google"
 import "./globals.css"
+import { NextIntlClientProvider } from "next-intl"
+import { getMessages, getLocale } from "next-intl/server"
 import { Providers } from "./providers"
 import { Navbar, type NavbarUser } from "@/components/navbar"
 import { Footer } from "@/components/footer"
@@ -23,26 +25,32 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 })
 
-export const metadata: Metadata = {
-  title: "Edu Learn - Premium E-Learning Platform",
-  description: "Access expert-led courses, track your progress with interactive lessons, and earn verified certificates. Start your learning journey today.",
-  keywords: ["e-learning", "online courses", "education", "Edu Learn", "certificates"],
-  openGraph: {
-    title: "Edu Learn - Premium E-Learning Platform",
-    description: "Learn anything, anywhere, anytime with expert-led courses and verified certificates.",
-    type: "website",
-  },
-  icons: {
-    icon: '/favicon.svg',
-    shortcut: '/favicon.svg',
-    apple: '/icons/icon-192.svg',
-  },
-  manifest: '/manifest.json',
-  other: {
-    'theme-color': '#6366f1',
-    'apple-mobile-web-app-capable': 'yes',
-    'apple-mobile-web-app-status-bar-style': 'default',
-  },
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = await getLocale()
+  const messages = (await import(`../../messages/${locale}.json`)).default as Record<string, unknown>
+  const metadataMessages = messages.metadata as { title: string; description: string } | undefined
+
+  return {
+    title: metadataMessages?.title ?? "Edu Learn - Premium E-Learning Platform",
+    description: metadataMessages?.description ?? "Access expert-led courses, track your progress with interactive lessons, and earn verified certificates. Start your learning journey today.",
+    keywords: ["e-learning", "online courses", "education", "Edu Learn", "certificates"],
+    openGraph: {
+      title: metadataMessages?.title ?? "Edu Learn - Premium E-Learning Platform",
+      description: metadataMessages?.description ?? "Learn anything, anywhere, anytime with expert-led courses and verified certificates.",
+      type: "website",
+    },
+    icons: {
+      icon: '/favicon.svg',
+      shortcut: '/favicon.svg',
+      apple: '/icons/icon-192.svg',
+    },
+    manifest: '/manifest.json',
+    other: {
+      'theme-color': '#6366f1',
+      'apple-mobile-web-app-capable': 'yes',
+      'apple-mobile-web-app-status-bar-style': 'default',
+    },
+  }
 }
 
 async function getInitialUser(): Promise<NavbarUser | null> {
@@ -74,24 +82,28 @@ export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   const initialUser = await getInitialUser()
+  const locale = await getLocale()
+  const messages = await getMessages()
 
   return (
-    <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`} suppressHydrationWarning>
+    <html lang={locale} className={`${geistSans.variable} ${geistMono.variable}`} suppressHydrationWarning>
       <body className="min-h-screen bg-background antialiased">
-        <Providers>
-          <div className="relative">
-            <div className="fixed inset-0 pointer-events-none overflow-hidden -z-10">
-              <div className="ambient-orb ambient-orb-1" />
-              <div className="ambient-orb ambient-orb-2" />
+        <NextIntlClientProvider messages={messages}>
+          <Providers>
+            <div className="relative">
+              <div className="fixed inset-0 pointer-events-none overflow-hidden -z-10">
+                <div className="ambient-orb ambient-orb-1" />
+                <div className="ambient-orb ambient-orb-2" />
+              </div>
+              <Navbar initialUser={initialUser} />
+              <main>{children}</main>
+              <Footer />
+              <FloatingAiAssistant />
+              <PwaPrompt />
+              <NotificationPermissionBanner />
             </div>
-            <Navbar initialUser={initialUser} />
-            <main>{children}</main>
-            <Footer />
-            <FloatingAiAssistant />
-            <PwaPrompt />
-            <NotificationPermissionBanner />
-          </div>
-        </Providers>
+          </Providers>
+        </NextIntlClientProvider>
         <script
           dangerouslySetInnerHTML={{
             __html: `

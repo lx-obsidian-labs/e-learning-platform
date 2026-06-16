@@ -4,6 +4,7 @@ import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 import { useTheme } from "next-themes"
+import { useTranslations } from "next-intl"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 import {
@@ -16,6 +17,7 @@ import {
 import { createClient } from "@/lib/supabase/client"
 import { Sun, Moon, Menu, X } from "lucide-react"
 import { NotificationBell } from "@/components/notification-bell"
+import { LanguageSwitcher } from "@/components/language-switcher"
 import { getMyStats } from "@/actions/gamification"
 
 export type NavbarUser = {
@@ -26,15 +28,10 @@ export type NavbarUser = {
   image?: string
 }
 
-const navLinks = [
-  { href: "/", label: "Home" },
-  { href: "/courses", label: "Courses" },
-  { href: "/about", label: "About" },
-  { href: "/pricing", label: "Pricing" },
-  { href: "/contact", label: "Contact" },
-]
-
 export function Navbar({ initialUser }: { initialUser?: NavbarUser | null }) {
+  const t = useTranslations("nav")
+  const tc = useTranslations("common")
+  const tg = useTranslations("gamification")
   const pathname = usePathname()
   const router = useRouter()
   const { theme, setTheme } = useTheme()
@@ -47,6 +44,14 @@ export function Navbar({ initialUser }: { initialUser?: NavbarUser | null }) {
   const isAuthPage = pathname.startsWith("/auth/")
   const isAdmin = pathname.startsWith("/admin")
   const isInstructor = pathname.startsWith("/instructor")
+
+  const navLinks = [
+    { href: "/", label: t("home") },
+    { href: "/courses", label: t("courses") },
+    { href: "/about", label: t("about") },
+    { href: "/pricing", label: t("pricing") },
+    { href: "/contact", label: t("contact") },
+  ]
 
   useEffect(() => {
     setMounted(true)
@@ -121,13 +126,15 @@ export function Navbar({ initialUser }: { initialUser?: NavbarUser | null }) {
         </nav>
 
         <div className="flex items-center gap-2">
+          <LanguageSwitcher />
+
           {mounted && (
             <Button
               variant="ghost"
               size="icon"
               onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
               className="h-9 w-9 rounded-full"
-              aria-label="Toggle theme"
+              aria-label={t("toggleTheme")}
             >
               {theme === "dark" ? (
                 <Sun className="h-4 w-4" />
@@ -163,56 +170,56 @@ export function Navbar({ initialUser }: { initialUser?: NavbarUser | null }) {
                 </div>
                 {stats && (
                   <div className="px-2 py-1.5 text-xs text-muted-foreground border-b flex items-center gap-1">
-                    <span>Lv.{stats.level}</span>
+                    <span>{tg("level", { level: stats.level })}</span>
                     <span>·</span>
-                    <span>XP {stats.xp}</span>
+                    <span>{tg("xp", { xp: stats.xp })}</span>
                     <span>·</span>
-                    <span>🔥{stats.currentStreak}</span>
+                    <span>{tg("streak", { days: stats.currentStreak })}</span>
                   </div>
                 )}
                 <DropdownMenuItem asChild>
-                  <Link href="/dashboard" className="cursor-pointer">Dashboard</Link>
+                  <Link href="/dashboard" className="cursor-pointer">{t("dashboard")}</Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link href="/review" className="cursor-pointer">Reviews</Link>
+                  <Link href="/review" className="cursor-pointer">{t("reviews")}</Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link href="/analytics" className="cursor-pointer">Analytics</Link>
+                  <Link href="/analytics" className="cursor-pointer">{t("analytics")}</Link>
                 </DropdownMenuItem>
                 {user.role === "INSTRUCTOR" && (
                   <DropdownMenuItem asChild>
-                    <Link href="/instructor" className="cursor-pointer">Instructor Panel</Link>
+                    <Link href="/instructor" className="cursor-pointer">{t("instructorPanel")}</Link>
                   </DropdownMenuItem>
                 )}
                 {user.role === "ADMIN" && (
                   <DropdownMenuItem asChild>
-                    <Link href="/admin" className="cursor-pointer">Admin Panel</Link>
+                    <Link href="/admin" className="cursor-pointer">{t("adminPanel")}</Link>
                   </DropdownMenuItem>
                 )}
                 <DropdownMenuItem asChild>
-                  <Link href="/orders" className="cursor-pointer">Orders</Link>
+                  <Link href="/orders" className="cursor-pointer">{t("orders")}</Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link href="/notifications" className="cursor-pointer">Notifications</Link>
+                  <Link href="/notifications" className="cursor-pointer">{t("notifications")}</Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link href="/leaderboard" className="cursor-pointer">Leaderboard</Link>
+                  <Link href="/leaderboard" className="cursor-pointer">{t("leaderboard")}</Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link href="/badges" className="cursor-pointer">Badges</Link>
+                  <Link href="/badges" className="cursor-pointer">{t("badges")}</Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link href="/certificates" className="cursor-pointer">Certificates</Link>
+                  <Link href="/certificates" className="cursor-pointer">{t("certificates")}</Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link href="/groups" className="cursor-pointer">Study Groups</Link>
+                  <Link href="/groups" className="cursor-pointer">{t("studyGroups")}</Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link href="/settings" className="cursor-pointer">Settings</Link>
+                  <Link href="/settings" className="cursor-pointer">{t("settings")}</Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleSignOut} className="text-destructive cursor-pointer">
-                  Sign out
+                  {tc("signOut")}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -220,10 +227,10 @@ export function Navbar({ initialUser }: { initialUser?: NavbarUser | null }) {
           ) : (
             <div className="flex items-center gap-2">
               <Button variant="ghost" size="sm" asChild className="hidden sm:inline-flex">
-                <Link href="/auth/login">Sign in</Link>
+                <Link href="/auth/login">{tc("signIn")}</Link>
               </Button>
               <Button size="sm" asChild className="shadow-lg shadow-indigo-500/20 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white border-0">
-                <Link href="/auth/register">Get started free</Link>
+                <Link href="/auth/register">{t("getStartedFree")}</Link>
               </Button>
             </div>
           )}

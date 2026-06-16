@@ -2,8 +2,14 @@ import { createServerClient } from "@supabase/ssr"
 import { createClient } from "@supabase/supabase-js"
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
+import createI18nMiddleware from "next-intl/middleware"
+import { routing } from "@/i18n/routing"
+
+const i18nMiddleware = createI18nMiddleware(routing)
 
 export async function proxy(request: NextRequest) {
+  const i18nResponse = i18nMiddleware(request)
+
   let supabaseResponse = NextResponse.next({ request })
 
   const supabase = createServerClient(
@@ -15,7 +21,7 @@ export async function proxy(request: NextRequest) {
           return request.cookies.getAll()
         },
         setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) =>
+          cookiesToSet.forEach(({ name, value }) =>
             request.cookies.set(name, value)
           )
           supabaseResponse = NextResponse.next({ request })
@@ -68,9 +74,21 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(new URL("/dashboard", request.url))
   }
 
-  return supabaseResponse
+  const response = supabaseResponse
+
+  if (i18nResponse.cookies) {
+    const i18nCookies = i18nResponse.cookies as unknown as { getAll: () => { name: string; value: string }[] }
+    const cookies = i18nCookies.getAll()
+    for (const cookie of cookies) {
+      response.cookies.set(cookie.name, cookie.value)
+    }
+  }
+
+  return response
 }
 
 export const config = {
-  matcher: ["/(dashboard|instructor|admin|auth)/:path*"],
+  matcher: [
+    "/((?!api|_next|_vercel|.*\\..*).*)",
+  ],
 }

@@ -1,0 +1,185 @@
+{
+  "metadata": {
+    "title": "Edu Learn - Domina nuevas habilidades con cursos dirigidos por expertos",
+    "description": "Accede a lecciones en video de alta calidad, cuestionarios interactivos y obtén certificados verificados, todo completamente gratis."
+  },
+  "common": {
+    "appName": "Edu Learn",
+    "appInitials": "EL",
+    "loading": "Cargando...",
+    "error": "Algo salió mal",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "search": "Buscar",
+    "close": "Cerrar",
+    "back": "Volver",
+    "viewAll": "Ver todo",
+    "learnMore": "Más información",
+    "getStarted": "Comienza gratis",
+    "signIn": "Iniciar sesión",
+    "signOut": "Cerrar sesión",
+    "submit": "Enviar",
+    "continue": "Continuar",
+    "noResults": "No se encontraron resultados"
+  },
+  "nav": {
+    "home": "Inicio",
+    "courses": "Cursos",
+    "about": "Acerca de",
+    "pricing": "Precios",
+    "contact": "Contacto",
+    "dashboard": "Panel",
+    "reviews": "Revisiones",
+    "analytics": "Analíticas",
+    "instructorPanel": "Panel de instructor",
+    "adminPanel": "Panel de admin",
+    "orders": "Pedidos",
+    "notifications": "Notificaciones",
+    "leaderboard": "Clasificación",
+    "badges": "Insignias",
+    "certificates": "Certificados",
+    "studyGroups": "Grupos de estudio",
+    "settings": "Ajustes",
+    "toggleTheme": "Cambiar tema",
+    "getStartedFree": "Comienza gratis"
+  },
+  "footer": {
+    "platform": "Plataforma",
+    "browseCourses": "Explorar cursos",
+    "pricing": "Precios",
+    "aboutUs": "Sobre nosotros",
+    "contact": "Contacto",
+    "support": "Soporte",
+    "faq": "FAQ",
+    "termsOfService": "Términos del servicio",
+    "privacyPolicy": "Política de privacidad",
+    "disclaimer": "Aviso legal",
+    "compliance": "Cumplimiento",
+    "community": "Comunidad",
+    "teachOn": "Enseña en Edu Learn",
+    "discussions": "Discusiones",
+    "description": "Edu Learn es una plataforma moderna de e-learning que ofrece cursos dirigidos por expertos con funciones impulsadas por IA, gamificación y certificados verificados.",
+    "twitter": "Twitter",
+    "github": "GitHub",
+    "linkedin": "LinkedIn",
+    "copyright": "© {year} Edu Learn. Todos los derechos reservados.",
+    "developedBy": "Desarrollado por Edu Learn · Codificado por Siphesihle Nathan Vilane"
+  },
+  "home": {
+    "hero": {
+      "badge": "Plataforma educativa gratuita y abierta",
+      "heading": "Domina nuevas habilidades",
+      "gradientHeading": "Con cursos dirigidos por expertos",
+      "subtitle": "Accede a lecciones en video de alta calidad, cuestionarios interactivos y obtén certificados verificados, todo completamente gratis.",
+      "cta": "Empieza a aprender gratis",
+      "explore": "Explorar cursos",
+      "demoTitle": "Introducción a la Informática",
+      "demoSubtitle": "Comienza tu viaje aquí",
+      "demoTime": "0:32 / 12:45"
+    },
+    "features": {
+      "badge": "Por qué elegir Edu Learn",
+      "heading": "Todo lo que necesitas para tener éxito",
+      "subtitle": "Una experiencia de aprendizaje premium diseñada para estudiantes modernos, impulsada por tecnología de IA de vanguardia.",
+      "items": [
+        {
+          "title": "Aprendizaje con IA",
+          "description": "Recomendaciones personalizadas, revisiones adaptativas y un tutor inteligente para acelerar tu progreso."
+        },
+        {
+          "title": "Cursos dirigidos por expertos",
+          "description": "Aprende de profesionales de la industria con planes de estudio estructurados para habilidades del mundo real."
+        },
+        {
+          "title": "Experiencia gamificada",
+          "description": "Gana XP, desbloquea insignias, mantén rachas y compite en clasificaciones para mantenerte motivado."
+        },
+        {
+          "title": "Certificados verificados",
+          "description": "Obtén certificados verificados en blockchain al completar cursos para mostrar tus logros."
+        },
+        {
+          "title": "Estudia juntos",
+          "description": "Únete a grupos de estudio, discute con compañeros y colabora en tu viaje de aprendizaje."
+        },
+        {
+          "title": "Acceso sin conexión",
+          "description": "Instala como PWA y accede a tus cursos incluso sin conexión a internet."
+        }
+      ]
+    },
+    "stats": {
+      "courses": "Cursos dirigidos por expertos",
+      "lessons": "Lecciones en video",
+      "free": "Acceso gratuito",
+      "community": "Apoyo comunitario"
+    },
+    "testimonials": {
+      "badge": "Testimonios",
+      "heading": "Lo que dicen nuestros estudiantes",
+      "subtitle": "Únete a miles de estudiantes satisfechos que transforman sus carreras con Edu Learn.",
+      "items": [
+        {
+          "name": "Sarah Johnson",
+          "role": "Desarrolladora Frontend",
+          "content": "Edu Learn cambió completamente mi forma de aprender. El tutor de IA me ayudó a comprender conceptos complejos en la mitad del tiempo."
+        },
+        {
+          "name": "Marcus Chen",
+          "role": "Estudiante de Informática",
+          "content": "El sistema de gamificación me mantiene motivado. ¡He mantenido una racha de 50 días y ganado 12 insignias!"
+        },
+        {
+          "name": "Priya Patel",
+          "role": "Analista de Datos",
+          "content": "Las revisiones de repetición espaciada son un cambio radical. Retengo mucho mejor la información que con los cursos tradicionales."
+        },
+        {
+          "name": "James Wilson",
+          "role": "Desarrollador Autodidacta",
+          "content": "La mejor plataforma de aprendizaje gratuita que he encontrado. Los certificados blockchain añaden credibilidad real a mi portafolio."
+        }
+      ]
+    },
+    "featuredCourses": {
+      "badge": "Cursos destacados",
+      "heading": "Empieza a aprender hoy",
+      "subtitle": "Elige entre nuestra selección curada de cursos de alta calidad, todos disponibles gratuitamente.",
+      "browseAll": "Explorar todos los cursos",
+      "viewCourse": "Ver curso →",
+      "free": "Gratis"
+    },
+    "aiSection": {
+      "badge": "Impulsado por IA",
+      "heading": "Aprende de forma más inteligente con IA",
+      "subtitle": "Obtén recomendaciones personalizadas, respuestas instantáneas del tutor de IA e información inteligente sobre tus patrones de aprendizaje.",
+      "askAssistant": "Preguntar al asistente de IA"
+    },
+    "cta": {
+      "heading": "¿Listo para empezar a aprender?",
+      "subtitle": "Únete a miles de estudiantes en Edu Learn y transforma tu futuro hoy.",
+      "getStarted": "Comienza gratis",
+      "browseCourses": "Explorar cursos"
+    }
+  },
+  "gamification": {
+    "level": "Nivel {level}",
+    "xp": "{xp} XP",
+    "streak": "🔥 Racha: {days} días",
+    "badges": "🏅 {count} insignias",
+    "viewAllBadges": "Ver todas las insignias →",
+    "xpForNext": "XP para el siguiente nivel"
+  },
+  "reviews": {
+    "title": "Revisiones",
+    "due": "{count} revisiones pendientes",
+    "completed": "{count} completadas",
+    "streak": "{days} días de racha",
+    "startReview": "Iniciar revisión",
+    "noReviews": "No hay revisiones pendientes. ¡Buen trabajo!",
+    "qualityLabel": "¿Qué tan bien recuerdas?",
+    "submitReview": "Enviar revisión"
+  }
+}
