@@ -1,20 +1,24 @@
 import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
-import { chatCompletion, buildTutorPrompt } from "@/lib/nvidia-ai"
-import { NextRequest, NextResponse } from "next/server"
+import { chatCompletion, streamChatCompletion, buildTutorPrompt, checkRateLimit, trackUsage } from "@/lib/nvidia-ai"
+import { NextRequest } from "next/server"
 import { randomUUID } from "crypto"
 
 export async function POST(request: NextRequest) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) {
-    return NextResponse.json({ error: "Not authenticated" }, { status: 401 })
+    return new Response(JSON.stringify({ error: "Not authenticated" }), { status: 401 })
   }
 
-  const { courseId, question, history } = await request.json()
+  if (!checkRateLimit(user.id, 20, 60000)) {
+    return new Response(JSON.stringify({ error: "Rate limit exceeded. Try again later." }), { status: 429 })
+  }
+
+  const { courseId, question, history, stream } = await request.json()
 
   if (!courseId || !question) {
-    return NextResponse.json({ error: "courseId and question required" }, { status: 400 })
+    return new Response(JSON.stringify({ error: "courseId and question required" }), { status: 400 })
   }
 
   const admin = createAdminClient()
@@ -27,7 +31,7 @@ export async function POST(request: NextRequest) {
     .maybeSingle()
 
   if (!enrollment) {
-    return NextResponse.json({ error: "Not enrolled" }, { status: 403 })
+    return new Response(JSON.stringify({ error: "Not enrolled" }), { status: 403 })
   }
 
   const { data: moduleIds } = await admin
@@ -51,11 +55,58 @@ export async function POST(request: NextRequest) {
     .map((l: any) => `Lesson: ${l.title}\n${l.description ?? ""}\n${l.content ?? ""}`)
     .join("\n\n---\n\n")
 
+  const messages = buildTutorPrompt(question, context || "No course content available yet.", history ?? [])
+
+  if (stream) {
+    try {
+      const generator = streamChatCompletion({ messages })
+
+      const encoder = new TextEncoder()
+      const readable = new ReadableStream({
+        async start(controller) {
+          let fullReply = ""
+          try {
+            for await (const chunk of generator) {
+              fullReply += chunk
+              controller.enqueue(encoder.encode(`data: ${JSON.stringify({ content: chunk })}\n\n`))
+            }
+            controller.enqueue(encoder.encode("data: [DONE]\n\n"))
+            controller.close()
+
+            trackUsage(user.id, "tutor", fullReply.length)
+
+            try {
+              await createAdminClient().from('ai_chats').insert({
+                id: randomUUID(),
+                userId: user.id,
+                courseId,
+                messages: JSON.stringify([...(history ?? []), { role: 'user', content: question }, { role: 'assistant', content: fullReply }]),
+              })
+            } catch {}
+          } catch (err) {
+            controller.enqueue(encoder.encode(`data: ${JSON.stringify({ error: "AI tutor unavailable" })}\n\n`))
+            controller.close()
+          }
+        },
+      })
+
+      return new Response(readable, {
+        headers: {
+          "Content-Type": "text/event-stream",
+          "Cache-Control": "no-cache",
+          Connection: "keep-alive",
+        },
+      })
+    } catch {
+      return new Response(JSON.stringify({ error: "AI tutor unavailable" }), { status: 503 })
+    }
+  }
+
   try {
-    const messages = buildTutorPrompt(question, context || "No course content available yet.", history ?? [])
     const reply = await chatCompletion({ messages })
 
-    // persist chat (transient) to ai_chats
+    trackUsage(user.id, "tutor", reply.length)
+
     try {
       await createAdminClient().from('ai_chats').insert({
         id: randomUUID(),
@@ -67,11 +118,8 @@ export async function POST(request: NextRequest) {
       console.warn('Failed to persist ai chat', err)
     }
 
-    return NextResponse.json({ reply })
-  } catch (error) {
-    return NextResponse.json(
-      { error: "AI tutor unavailable" },
-      { status: 503 }
-    )
+    return new Response(JSON.stringify({ reply }))
+  } catch {
+    return new Response(JSON.stringify({ error: "AI tutor unavailable" }), { status: 503 })
   }
 }

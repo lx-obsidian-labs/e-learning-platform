@@ -1,12 +1,24 @@
-import { NextRequest, NextResponse } from "next/server"
-import { chatCompletion } from "@/lib/nvidia-ai"
+import { createClient } from "@/lib/supabase/server"
+import { chatCompletion, streamChatCompletion, checkRateLimit, trackUsage } from "@/lib/nvidia-ai"
+import { NextRequest } from "next/server"
 
 export async function POST(req: NextRequest) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) {
+    return new Response(JSON.stringify({ error: "Not authenticated" }), { status: 401 })
+  }
+
+  if (!checkRateLimit(user.id, 20, 60000)) {
+    return new Response(JSON.stringify({ error: "Rate limit exceeded. Try again later." }), { status: 429 })
+  }
+
   try {
-    const { lessonTitle, lessonContent, videoUrl, videoTitle, question, history } = await req.json()
+    const { lessonTitle, lessonContent, videoUrl, videoTitle, question, history, stream } = await req.json()
 
     if (!question) {
-      return NextResponse.json({ error: "Question is required" }, { status: 400 })
+      return new Response(JSON.stringify({ error: "Question is required" }), { status: 400 })
     }
 
     const context = [
@@ -33,14 +45,42 @@ Be concise (under 200 words), use markdown formatting. If the question is outsid
       { role: "user", content: question },
     ]
 
-    const reply = await chatCompletion({ messages })
+    if (stream) {
+      const generator = streamChatCompletion({ messages })
 
-    return NextResponse.json({ reply })
+      const encoder = new TextEncoder()
+      const readable = new ReadableStream({
+        async start(controller) {
+          let fullReply = ""
+          try {
+            for await (const chunk of generator) {
+              fullReply += chunk
+              controller.enqueue(encoder.encode(`data: ${JSON.stringify({ content: chunk })}\n\n`))
+            }
+            controller.enqueue(encoder.encode("data: [DONE]\n\n"))
+            controller.close()
+            trackUsage(user.id, "video-coach", fullReply.length)
+          } catch {
+            controller.enqueue(encoder.encode(`data: ${JSON.stringify({ error: "AI coaching unavailable" })}\n\n`))
+            controller.close()
+          }
+        },
+      })
+
+      return new Response(readable, {
+        headers: {
+          "Content-Type": "text/event-stream",
+          "Cache-Control": "no-cache",
+          Connection: "keep-alive",
+        },
+      })
+    }
+
+    const reply = await chatCompletion({ messages })
+    trackUsage(user.id, "video-coach", reply.length)
+    return new Response(JSON.stringify({ reply }))
   } catch (error) {
     console.error("AI Video Coach error:", error)
-    return NextResponse.json(
-      { error: "AI coaching is temporarily unavailable." },
-      { status: 503 }
-    )
+    return new Response(JSON.stringify({ error: "AI coaching is temporarily unavailable." }), { status: 503 })
   }
 }

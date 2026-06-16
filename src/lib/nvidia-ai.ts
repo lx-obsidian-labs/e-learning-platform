@@ -50,6 +50,65 @@ export async function chatCompletion(opts: ChatCompletionOpts) {
   return data.choices[0]?.message?.content ?? ""
 }
 
+export async function* streamChatCompletion(opts: ChatCompletionOpts): AsyncGenerator<string> {
+  const {
+    messages,
+    temperature = 0.7,
+    maxTokens = 2048,
+    model = DEFAULT_MODEL,
+  } = opts
+
+  const res = await fetch(`${NVIDIA_API_BASE}/chat/completions`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${getApiKey()}`,
+    },
+    body: JSON.stringify({
+      model,
+      messages,
+      temperature,
+      max_tokens: maxTokens,
+      stream: true,
+    }),
+  })
+
+  if (!res.ok) {
+    const text = await res.text()
+    throw new Error(`NVIDIA API error (${res.status}): ${text}`)
+  }
+
+  const reader = res.body?.getReader()
+  if (!reader) throw new Error("No response body")
+
+  const decoder = new TextDecoder()
+  let buffer = ""
+
+  while (true) {
+    const { done, value } = await reader.read()
+    if (done) break
+
+    buffer += decoder.decode(value, { stream: true })
+    const lines = buffer.split("\n")
+    buffer = lines.pop() || ""
+
+    for (const line of lines) {
+      const trimmed = line.trim()
+      if (!trimmed || !trimmed.startsWith("data: ")) continue
+      const data = trimmed.slice(6)
+      if (data === "[DONE]") return
+
+      try {
+        const parsed = JSON.parse(data)
+        const content = parsed.choices?.[0]?.delta?.content
+        if (content) yield content
+      } catch {
+        continue
+      }
+    }
+  }
+}
+
 export function buildTutorPrompt(
   question: string,
   context: string,
@@ -87,7 +146,6 @@ export function buildRecommendationPrompt(userContext: any, courses: any[]) {
 }
 
 export async function moderateContent(text: string) {
-  // Ask the model to strictly output a JSON object with verdict and reason.
   const system = `You are a content moderator. Classify the following user-generated content.
 
 Rules:
@@ -96,7 +154,7 @@ Rules:
 - Otherwise return verdict "allow".
 
 Output:
-Return a single JSON object with keys: verdict (one of \"allow\", \"flag\", \"reject\") and reason (short string). Do NOT output any other text.`
+Return a single JSON object with keys: verdict (one of "allow", "flag", "reject") and reason (short string). Do NOT output any other text.`
 
   const messages: Message[] = [
     { role: "system", content: system },
@@ -105,7 +163,6 @@ Return a single JSON object with keys: verdict (one of \"allow\", \"flag\", \"re
 
   try {
     const reply = await chatCompletion({ messages, temperature: 0, maxTokens: 200 })
-    // Expect strict JSON
     const jsonStart = reply.indexOf("{")
     const jsonText = jsonStart >= 0 ? reply.slice(jsonStart) : reply
     const parsed = JSON.parse(jsonText)
@@ -113,8 +170,55 @@ Return a single JSON object with keys: verdict (one of \"allow\", \"flag\", \"re
     const reason = parsed.reason || ""
     return { verdict, reason }
   } catch (err) {
-    // If moderation fails, default to allow but log to console
     console.warn("Moderation failed:", err)
     return { verdict: "allow", reason: "moderation_unavailable" }
   }
 }
+
+const rateLimitMap = new Map<string, { count: number; resetAt: number }>()
+
+export function checkRateLimit(userId: string, maxRequests: number = 20, windowMs: number = 60000): boolean {
+  const now = Date.now()
+  const entry = rateLimitMap.get(userId)
+
+  if (!entry || now > entry.resetAt) {
+    rateLimitMap.set(userId, { count: 1, resetAt: now + windowMs })
+    return true
+  }
+
+  if (entry.count >= maxRequests) {
+    return false
+  }
+
+  entry.count++
+  return true
+}
+
+const usageQueue: { userId: string; type: string; tokens?: number }[] = []
+
+export function trackUsage(userId: string, type: string, tokens?: number) {
+  usageQueue.push({ userId, type, tokens })
+}
+
+export async function flushUsageQueue() {
+  if (usageQueue.length === 0) return
+
+  const admin = (await import("@/lib/supabase/admin")).createAdminClient()
+  const { randomUUID } = await import("crypto")
+
+  const batch = usageQueue.splice(0, usageQueue.length)
+  const inserts = batch.map((u) => ({
+    id: randomUUID(),
+    userId: u.userId,
+    messages: JSON.stringify([{ role: "system", content: `usage:${u.type}${u.tokens ? ` tokens:${u.tokens}` : ""}` }]),
+    createdAt: new Date().toISOString(),
+  }))
+
+  try {
+    await admin.from("ai_chats").insert(inserts)
+  } catch (err) {
+    console.warn("Failed to persist usage data:", err)
+  }
+}
+
+setInterval(flushUsageQueue, 5000)
