@@ -76,6 +76,20 @@ export class EbookAggregationService {
     return null
   }
 
+  async getEbookContent(id: string): Promise<string | null> {
+    for (const provider of this.providers) {
+      if (provider.getContent) {
+        try {
+          const content = await provider.getContent(id)
+          if (content) return content
+        } catch {
+          continue
+        }
+      }
+    }
+    return null
+  }
+
   getCategories(): string[] {
     return [
       "Classics", "Fiction", "Fantasy", "Science Fiction", "Mystery",

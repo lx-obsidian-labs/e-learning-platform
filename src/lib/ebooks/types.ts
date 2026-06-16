@@ -16,4 +16,5 @@ export interface EbookProvider {
   readonly sourceName: string
   searchEbooks(query?: string, options?: { category?: string; limit?: number }): Promise<Ebook[]>
   getEbook(id: string): Promise<Ebook | null>
+  getContent?(id: string): Promise<string | null>
 }

@@ -1,4 +1,5 @@
 import type { Ebook, EbookProvider } from "../types"
+import { GutendexProvider } from "./gutendex"
 
 const CURATED: Ebook[] = [
   { id: "gutendex_1342",  title: "Pride and Prejudice",                author: "Austen, Jane",                           description: "A romantic novel of manners about Elizabeth Bennet.",                                                coverUrl: "https://covers.openlibrary.org/b/olid/OL66562M-L.jpg",  fileUrl: "https://www.gutenberg.org/ebooks/1342",  source: "curated", sourceName: "Project Gutenberg", category: "Classics",  pages: null },
@@ -30,6 +31,7 @@ const CURATED: Ebook[] = [
 export class CuratedProvider implements EbookProvider {
   readonly name = "curated"
   readonly sourceName = "Classic Library"
+  private gutendex = new GutendexProvider()
 
   async searchEbooks(query?: string, options?: { category?: string; limit?: number }): Promise<Ebook[]> {
     let results = CURATED
@@ -52,5 +54,9 @@ export class CuratedProvider implements EbookProvider {
 
   async getEbook(id: string): Promise<Ebook | null> {
     return CURATED.find((b) => b.id === id) || null
+  }
+
+  async getContent(id: string): Promise<string | null> {
+    return this.gutendex.getContent(id)
   }
 }

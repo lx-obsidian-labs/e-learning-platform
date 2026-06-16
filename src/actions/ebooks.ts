@@ -33,3 +33,11 @@ export async function getEbook(id: string) {
 export async function getEbookCategories() {
   return service.getCategories()
 }
+
+export async function getEbookContent(id: string): Promise<string | null> {
+  try {
+    return await service.getEbookContent(id)
+  } catch {
+    return null
+  }
+}

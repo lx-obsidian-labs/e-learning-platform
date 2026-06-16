@@ -4,7 +4,7 @@ import { getEbook } from "@/actions/ebooks"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { ArrowLeft, BookOpen, ExternalLink, FileText } from "lucide-react"
+import { ArrowLeft, BookOpen, ExternalLink, BookMarked, FileText } from "lucide-react"
 
 export const dynamic = "force-dynamic"
 export const metadata = { title: "Read eBook - Edu Learn" }
@@ -46,17 +46,18 @@ export default async function EbookPage({ params }: Props) {
             </div>
 
             <Button className="btn-premium w-full" asChild>
-              <a href={ebook.fileUrl} target="_blank" rel="noopener noreferrer">
-                <ExternalLink className="h-4 w-4 mr-2" />
-                Read Online
-              </a>
+              <Link href={`/ebooks/${ebook.id}/read`}>
+                <BookMarked className="h-4 w-4 mr-2" />
+                Read Now
+              </Link>
             </Button>
 
-            {ebook.source && (
-              <p className="text-[10px] text-muted-foreground/60 text-center">
-                Source: {ebook.sourceName}
-              </p>
-            )}
+            <Button variant="outline" className="w-full" asChild>
+              <a href={ebook.fileUrl} target="_blank" rel="noopener noreferrer">
+                <ExternalLink className="h-4 w-4 mr-2" />
+                Open on {ebook.sourceName}
+              </a>
+            </Button>
           </div>
 
           <div className="space-y-6">
@@ -115,8 +116,7 @@ export default async function EbookPage({ params }: Props) {
             <div className="flex items-center gap-3 p-4 rounded-xl bg-muted/50">
               <FileText className="h-5 w-5 text-muted-foreground shrink-0" />
               <p className="text-xs text-muted-foreground leading-relaxed">
-                This ebook is in the public domain and is provided free of charge.
-                {ebook.source === "gutenberg" && " Digitized by Project Gutenberg."}
+                This ebook is in the public domain and is provided free of charge. Source: {ebook.sourceName}.
               </p>
             </div>
           </div>

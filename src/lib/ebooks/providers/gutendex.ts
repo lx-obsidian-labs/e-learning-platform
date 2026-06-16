@@ -104,6 +104,30 @@ export class GutendexProvider implements EbookProvider {
     }
   }
 
+  async getContent(id: string): Promise<string | null> {
+    const numericId = id.replace("gutendex_", "")
+    const metaUrl = `${BASE}/books/${numericId}`
+
+    const controller = new AbortController()
+    const timer = setTimeout(() => controller.abort(), TIMEOUT)
+    try {
+      const metaRes = await fetch(metaUrl, { signal: controller.signal })
+      if (!metaRes.ok) return null
+      const book: GutendexBook = await metaRes.json()
+
+      const textUrl = book.formats["text/plain; charset=us-ascii"] || book.formats["text/plain"] || ""
+      if (!textUrl) return null
+
+      const textRes = await fetch(textUrl, { signal: controller.signal })
+      if (!textRes.ok) return null
+      return await textRes.text()
+    } catch {
+      return null
+    } finally {
+      clearTimeout(timer)
+    }
+  }
+
   private mapBook(book: GutendexBook): Ebook {
     const id = `gutendex_${book.id}`
     const author = book.authors.map((a) => a.name).join(", ") || "Unknown"
