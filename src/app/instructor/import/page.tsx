@@ -35,7 +35,7 @@ export default async function ImportCoursePage() {
       <section>
         <h2 className="text-xl font-semibold mb-4">Free Open Courses</h2>
         <p className="text-sm text-muted-foreground mb-4">
-          Import courses from Khan Academy, Wikiversity, OpenStax, and freeCodeCamp
+          Import courses from Khan Academy, Wikiversity, OpenStax, freeCodeCamp, and OpenLearn
         </p>
         <ImportForm />
       </section>

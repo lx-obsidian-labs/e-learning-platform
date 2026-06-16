@@ -4,7 +4,7 @@ export type ExternalCourse = {
   url: string
   thumbnail?: string
   instructor?: string
-  platform: "khan_academy" | "wikiversity" | "openstax" | "freecodecamp"
+  platform: "khan_academy" | "wikiversity" | "openstax" | "freecodecamp" | "openlearn"
   category?: string
   sourceId: string
   content?: string
@@ -107,6 +107,62 @@ async function fetchFreeCodeCampCourses(): Promise<ExternalCourse[]> {
   } catch { return [] }
 }
 
+// ─── OpenLearn (The Open University) ──────────────────────────
+
+async function fetchOpenLearnCourses(): Promise<ExternalCourse[]> {
+  try {
+    const res = await fetch("https://www.open.edu/openlearn/free-courses/full-catalogue", {
+      next: { revalidate: 86400 },
+    })
+    if (!res.ok) return []
+    const html = await res.text()
+
+    const courses: ExternalCourse[] = []
+    const rows = html.match(/<tr[^>]*>[\s\S]*?<\/tr>/gi) || []
+
+    for (const row of rows) {
+      if (!row.includes("views-field-title")) continue
+
+      const titleMatch = row.match(/views-field-title[\s\S]*?<a[^>]*href="([^"]*)"[^>]*>([\s\S]*?)<\/a>/i)
+      if (!titleMatch) continue
+
+      const url = titleMatch[1].trim()
+      const title = titleMatch[2].replace(/<[^>]*>/g, "").trim()
+      if (!title || !url) continue
+
+      const fullUrl = url.startsWith("http") ? url : `https://www.open.edu${url.startsWith("/") ? "" : "/"}${url}`
+
+      const descriptionMatch = row.match(/views-field-field-ou-course-code[\s\S]*?<td[^>]*>([\s\S]*?)<\/td>/i)
+      const code = descriptionMatch ? descriptionMatch[1].replace(/<[^>]*>/g, "").trim() : ""
+
+      const levelMatch = row.match(/views-field-field-level[\s\S]*?<td[^>]*>([\s\S]*?)<\/td>/i)
+      const level = levelMatch ? levelMatch[1].replace(/<[^>]*>/g, "").trim() : ""
+
+      const durationMatch = row.match(/views-field-field-planned-learning-hours[\s\S]*?<td[^>]*>([\s\S]*?)<\/td>/i)
+      const duration = durationMatch ? durationMatch[1].replace(/<[^>]*>/g, "").trim() : ""
+
+      const description = `Free ${level ? level + " " : ""}course from The Open University${code ? ` (${code})` : ""}.${duration ? ` Duration: ${duration}.` : ""}`
+
+      const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "").slice(0, 50)
+
+      courses.push({
+        title,
+        description,
+        url: fullUrl,
+        instructor: "The Open University",
+        platform: "openlearn",
+        category: "Academic",
+        sourceId: `openlearn_${slug}_${code || Math.random().toString(36).slice(2, 8)}`,
+        content: `${title} — a free ${level.toLowerCase()} course from The Open University, available on OpenLearn.${duration ? ` Approximately ${duration.toLowerCase()} to complete.` : ""}`,
+      })
+    }
+
+    return courses.slice(0, 50)
+  } catch {
+    return []
+  }
+}
+
 // ─── Aggregator ────────────────────────────────────────────────
 
 const STATIC_EXTERNAL_COURSES: ExternalCourse[] = [
@@ -126,6 +182,7 @@ export async function searchExternalCourses(query?: string): Promise<ExternalCou
     fetchWikiversityCourses(),
     fetchOpenStaxCourses(),
     fetchFreeCodeCampCourses(),
+    fetchOpenLearnCourses(),
   ]
 
   const live = (await Promise.all(sources)).flat()
