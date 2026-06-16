@@ -1,19 +1,21 @@
 import { UploadForm } from "./upload-form"
 import { LmsImportForm } from "./lms-import-form"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
 export default function AdminImportPage() {
   return (
     <div className="space-y-8">
       <div>
         <h1 className="text-3xl font-bold">Import Courses</h1>
-        <p className="text-muted-foreground">
+        <p className="lead">
           Upload JSON/CSV files, or import directly from Open edX and Moodle.
         </p>
       </div>
 
-      <div className="rounded-lg border p-4 space-y-3">
-        <h2 className="font-semibold">JSON Format</h2>
-        <pre className="text-xs bg-muted p-3 rounded-md overflow-auto max-h-32">
+      <Card variant="pro">
+        <CardContent className="space-y-3">
+          <h2 className="font-semibold">JSON Format</h2>
+          <pre className="text-xs bg-muted p-3 rounded-md overflow-auto max-h-32">
 {`{ "courses": [{
   "title": "Course Title",
   "description": "...",
@@ -24,15 +26,24 @@ export default function AdminImportPage() {
     "quiz": { "title": "Quiz", "questions": [...] }
   }]
 }]}`}
-        </pre>
-      </div>
+          </pre>
+        </CardContent>
+      </Card>
 
-      <UploadForm />
+      <Card variant="pro">
+        <CardContent>
+          <UploadForm />
+        </CardContent>
+      </Card>
 
-      <div className="border-t pt-6">
-        <h2 className="text-xl font-semibold mb-4">LMS Import</h2>
-        <LmsImportForm />
-      </div>
+      <Card variant="pro">
+        <CardHeader>
+          <CardTitle className="text-lg">LMS Import</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <LmsImportForm />
+        </CardContent>
+      </Card>
     </div>
   )
 }

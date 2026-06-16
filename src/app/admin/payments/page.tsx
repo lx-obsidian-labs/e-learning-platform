@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
 import { PaymentDashboard } from "./payment-dashboard"
+import { Card, CardContent } from "@/components/ui/card"
 
 export const dynamic = "force-dynamic"
 
@@ -12,10 +13,14 @@ export default async function AdminPaymentsPage() {
   return (
     <div>
       <div className="mb-8">
-        <h1 className="text-2xl font-bold tracking-tight">Payment Verification</h1>
-        <p className="text-muted-foreground mt-1">Review and approve EFT payments</p>
+        <h1 className="text-3xl font-bold">Payment Verification</h1>
+        <p className="lead">Review and approve EFT payments</p>
       </div>
-      <PaymentDashboard />
+      <Card variant="pro">
+        <CardContent className="p-0">
+          <PaymentDashboard />
+        </CardContent>
+      </Card>
     </div>
   )
 }

@@ -1,6 +1,6 @@
 import type { Metadata } from "next"
 import Link from "next/link"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 
 export const metadata: Metadata = {
   title: "Terms of Service — Edu Learn",
@@ -88,7 +88,7 @@ export default async function TermsPage() {
             Last updated: June 15, 2026
           </p>
         </div>
-        <p className="text-sm leading-relaxed text-muted-foreground">
+        <p className="lead">
           These Terms of Service ('Terms') govern your access to and use of the
           Edu Learn e-learning platform, operated by Obsidian Labs (Pty) Ltd in
           South Africa. Please read them carefully. By using Edu Learn, you enter
@@ -100,13 +100,11 @@ export default async function TermsPage() {
           </Link>{" "}
           for more information.
         </p>
-        <div className="space-y-6">
+         <div className="space-y-6">
           {sections.map((section) => (
             <Card key={section.title} variant="pro">
-              <CardHeader>
-                <CardTitle>{section.title}</CardTitle>
-              </CardHeader>
-              <CardContent>
+              <CardContent className="pt-6">
+                <h2 className="text-lg font-semibold mb-3">{section.title}</h2>
                 <p className="text-sm leading-relaxed text-muted-foreground">
                   {section.content}
                 </p>

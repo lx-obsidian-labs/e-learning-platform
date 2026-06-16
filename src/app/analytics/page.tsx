@@ -40,7 +40,7 @@ export default async function AnalyticsPage() {
           </Button>
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Analytics</h1>
-            <p className="text-muted-foreground mt-1">Track your learning performance and progress</p>
+            <p className="lead">Track your learning performance and progress</p>
           </div>
         </div>
 

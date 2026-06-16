@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button"
 import { StatCard } from "@/components/dashboard/stat-card"
 import { RevenueChart } from "@/components/admin/revenue-chart"
 import { ActivityFeed } from "@/components/admin/activity-feed"
-import { Users, BookOpen, GraduationCap, DollarSign, Activity, TrendingUp, UserPlus, FileText, MessageSquare, Settings } from "lucide-react"
+import { Users, BookOpen, GraduationCap, DollarSign, Activity, TrendingUp, UserPlus, FileText, MessageSquare } from "lucide-react"
 
 export const dynamic = "force-dynamic"
 export const metadata = { title: "Admin Dashboard - Edu Learn" }
@@ -36,6 +36,9 @@ export default async function AdminPage() {
       </div>
 
       <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
+        <div className="col-span-full">
+          <p className="lead">{stats?.totalUsers ?? 0} total users · {stats?.totalCourses ?? 0} courses · {stats?.totalEnrollments ?? 0} enrollments</p>
+        </div>
         <StatCard
           title="Total Users"
           value={stats?.totalUsers ?? 0}
@@ -110,7 +113,7 @@ export default async function AdminPage() {
           <h2 className="text-xl font-semibold">Quick Actions</h2>
           <div className="space-y-3">
             <Link href="/admin/users" className="block">
-              <Card className="hover:ring-foreground/30 transition-all cursor-pointer">
+              <Card variant="pro" className="cursor-pointer">
                 <CardContent className="flex items-center gap-3 py-4">
                   <div className="h-10 w-10 rounded-lg bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center">
                     <Users className="h-5 w-5 text-blue-600 dark:text-blue-400" />
@@ -123,7 +126,7 @@ export default async function AdminPage() {
               </Card>
             </Link>
             <Link href="/admin/courses" className="block">
-              <Card className="hover:ring-foreground/30 transition-all cursor-pointer">
+              <Card variant="pro" className="cursor-pointer">
                 <CardContent className="flex items-center gap-3 py-4">
                   <div className="h-10 w-10 rounded-lg bg-green-100 dark:bg-green-900/50 flex items-center justify-center">
                     <BookOpen className="h-5 w-5 text-green-600 dark:text-green-400" />
@@ -136,7 +139,7 @@ export default async function AdminPage() {
               </Card>
             </Link>
             <Link href="/admin/discussions" className="block">
-              <Card className="hover:ring-foreground/30 transition-all cursor-pointer">
+              <Card variant="pro" className="cursor-pointer">
                 <CardContent className="flex items-center gap-3 py-4">
                   <div className="h-10 w-10 rounded-lg bg-purple-100 dark:bg-purple-900/50 flex items-center justify-center">
                     <MessageSquare className="h-5 w-5 text-purple-600 dark:text-purple-400" />
@@ -150,7 +153,7 @@ export default async function AdminPage() {
             </Link>
           </div>
 
-          <Card>
+          <Card variant="pro">
             <CardHeader>
               <CardTitle className="text-sm">Platform Summary</CardTitle>
             </CardHeader>

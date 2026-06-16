@@ -10,11 +10,11 @@ export default async function OrdersPage() {
   if (!user) redirect("/auth/login")
 
   return (
-    <div className="min-h-screen pt-24 pb-16">
-      <div className="mx-auto max-w-3xl px-4 sm:px-6">
+    <div className="min-h-screen pt-16 sm:pt-20">
+      <div className="mx-auto max-w-3xl px-4 sm:px-6 py-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold tracking-tight">Order History</h1>
-          <p className="text-muted-foreground mt-1">Track your payments and plan subscriptions</p>
+          <p className="lead">Track your payments and plan subscriptions</p>
         </div>
         <OrdersList />
       </div>

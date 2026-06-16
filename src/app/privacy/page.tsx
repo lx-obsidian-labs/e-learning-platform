@@ -78,7 +78,7 @@ export default async function PrivacyPage() {
             Last updated: June 15, 2026
           </p>
         </div>
-        <p className="text-sm leading-relaxed text-muted-foreground">
+        <p className="lead">
           Edu Learn ("we", "us", "our") is committed to protecting your privacy.
           This Privacy Policy explains how we collect, use, disclose, and
           safeguard your personal information when you use our e-learning

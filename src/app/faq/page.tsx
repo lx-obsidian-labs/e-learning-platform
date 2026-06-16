@@ -47,7 +47,7 @@ export default function FAQPage() {
           <h1 className="text-4xl sm:text-5xl font-bold tracking-tight">
             Frequently asked questions
           </h1>
-          <p className="mt-4 text-lg text-muted-foreground max-w-2xl mx-auto">
+          <p className="lead max-w-2xl mx-auto">
             Everything you need to know about Edu Learn.
           </p>
         </div>
@@ -86,7 +86,7 @@ export default function FAQPage() {
           <p className="text-muted-foreground mb-8">
             We are here to help. Reach out to our support team.
           </p>
-          <Button size="lg" asChild>
+          <Button size="lg" className="btn-premium" asChild>
             <Link href="/contact">Contact us</Link>
           </Button>
         </div>

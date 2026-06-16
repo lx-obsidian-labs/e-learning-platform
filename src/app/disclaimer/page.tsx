@@ -63,7 +63,7 @@ export default async function DisclaimerPage() {
             Last updated: June 15, 2026
           </p>
         </div>
-        <p className="text-sm leading-relaxed text-muted-foreground">
+        <p className="lead">
           This disclaimer governs your use of Edu Learn. By accessing the
           Platform, you accept this disclaimer in full. If you disagree with any
           part, please discontinue use immediately. This page forms part of our

@@ -1,5 +1,6 @@
 import { getUsers } from "@/actions/admin"
 import { UserTable } from "./user-table"
+import { Card, CardContent } from "@/components/ui/card"
 
 export const dynamic = "force-dynamic"
 
@@ -19,10 +20,14 @@ export default async function AdminUsersPage({ searchParams }: Props) {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold">Users</h1>
-        <p className="text-muted-foreground">{total} total users</p>
+        <p className="lead">{total} total users</p>
       </div>
 
-      <UserTable users={users} total={total} page={page} pageSize={pageSize} />
+      <Card variant="pro">
+        <CardContent className="p-0">
+          <UserTable users={users} total={total} page={page} pageSize={pageSize} />
+        </CardContent>
+      </Card>
     </div>
   )
 }

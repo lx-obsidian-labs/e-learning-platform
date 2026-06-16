@@ -58,7 +58,7 @@ export default async function CompliancePage() {
             Last updated: June 15, 2026
           </p>
         </div>
-        <p className="text-sm leading-relaxed text-muted-foreground">
+        <p className="lead">
           Edu Learn is committed to operating with integrity and transparency
           across all jurisdictions. This page outlines our compliance with key
           regulations and standards applicable to our global user base. It is

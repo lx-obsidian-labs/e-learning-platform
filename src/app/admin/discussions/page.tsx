@@ -1,5 +1,6 @@
 import { getDiscussions } from "@/actions/admin"
 import { DiscussionsTable } from "./discussions-table"
+import { Card, CardContent } from "@/components/ui/card"
 
 export const dynamic = "force-dynamic"
 
@@ -17,10 +18,14 @@ export default async function AdminDiscussionsPage({ searchParams }: Props) {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold">Discussions</h1>
-        <p className="text-muted-foreground">Content moderation - {total} total discussions</p>
+        <p className="lead">Content moderation · {total} total discussions</p>
       </div>
 
-      <DiscussionsTable discussions={discussions} total={total} page={page} pageSize={pageSize} />
+      <Card variant="pro">
+        <CardContent className="p-0">
+          <DiscussionsTable discussions={discussions} total={total} page={page} pageSize={pageSize} />
+        </CardContent>
+      </Card>
     </div>
   )
 }
