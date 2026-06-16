@@ -4,6 +4,7 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { BuyButton } from "./buy-button"
+import { CouponSection } from "./coupon-section"
 
 export const dynamic = "force-dynamic"
 
@@ -155,6 +156,7 @@ export default async function PricingPage() {
                     <Link href="/auth/login">Sign in to purchase</Link>
                   </Button>
                 )}
+                {user && plan.price > 0 && <CouponSection planId={plan.id} />}
               </div>
             ))}
           </div>

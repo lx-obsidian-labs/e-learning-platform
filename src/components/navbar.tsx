@@ -200,6 +200,12 @@ export function Navbar({ initialUser }: { initialUser?: NavbarUser | null }) {
                   <Link href="/orders" className="cursor-pointer">{t("orders")}</Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
+                  <Link href="/subscription" className="cursor-pointer">Subscription</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/affiliate" className="cursor-pointer">Affiliate</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
                   <Link href="/notifications" className="cursor-pointer">{t("notifications")}</Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
