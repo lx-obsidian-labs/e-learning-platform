@@ -12,6 +12,8 @@ import { getRecommendationsForUser, getInsightsForUser } from "@/lib/recommendat
 import { AiInsights } from "@/components/ai-insights"
 import { getMyStats } from "@/actions/gamification"
 import { getReviewStats } from "@/actions/spaced-repetition"
+import { getActiveQuests, generateDailyQuests } from "@/actions/quests"
+import { QuestSection } from "@/components/gamification/quest-section"
 
 export const dynamic = "force-dynamic"
 
@@ -93,6 +95,13 @@ export default async function DashboardPage() {
 
   // Get spaced repetition stats
   const reviewStats = await getReviewStats()
+
+  // Get daily quests
+  let quests = await getActiveQuests()
+  if (!quests || quests.length === 0) {
+    const result = await generateDailyQuests()
+    quests = Array.isArray(result) ? result : []
+  }
 
   // Get AI recommendations (best-effort)
   let recommendations: any[] = []
@@ -201,6 +210,10 @@ export default async function DashboardPage() {
             </Card>
           </Link>
         </div>
+
+        {quests && quests.length > 0 && (
+          <QuestSection quests={quests} />
+        )}
 
         {validEnrollments.length === 0 ? (
           <Card>

@@ -143,6 +143,13 @@ export async function submitReview(lessonId: string, quality: number) {
     // gamification module not available, skip XP award
   }
 
+  try {
+    const { updateQuestProgress } = await import("@/actions/quests")
+    await updateQuestProgress("reviews", 1)
+  } catch {
+    // quests module not available, skip
+  }
+
   revalidatePath("/review")
   return { interval, nextReviewAt: nextReviewAt.toISOString() }
 }

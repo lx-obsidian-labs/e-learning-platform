@@ -61,6 +61,9 @@ export async function markLessonComplete(lessonId: string) {
       awardLessonXp(lessonId).catch(() => {})
       updateStreak().catch(() => {})
 
+      const { updateQuestProgress: trackQuest } = await import("@/actions/quests")
+      trackQuest("lessons", 1).catch(() => {})
+
       const { createNotification } = await import("@/actions/notifications")
       await createNotification(user.id, "Lesson completed!", `You completed "${lesson.title}"`)
     }

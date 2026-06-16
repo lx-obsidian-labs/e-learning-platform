@@ -92,6 +92,13 @@ export async function createDiscussion(lessonId: string, formData: FormData) {
 
     if (error) return { error: "Failed to post comment" }
 
+    try {
+      const { updateQuestProgress } = await import("@/actions/quests")
+      await updateQuestProgress("discussion", 1)
+    } catch {
+      // quests module not available, skip
+    }
+
     revalidatePath(`/courses/${course?.slug || mod.courseId}/lessons/${lessonId}`)
     return { success: true }
   } catch {
