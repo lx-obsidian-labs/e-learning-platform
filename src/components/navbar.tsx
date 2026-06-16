@@ -199,6 +199,9 @@ export function Navbar({ initialUser }: { initialUser?: NavbarUser | null }) {
                   <Link href="/badges" className="cursor-pointer">Badges</Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
+                  <Link href="/groups" className="cursor-pointer">Study Groups</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
                   <Link href="/settings" className="cursor-pointer">Settings</Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />

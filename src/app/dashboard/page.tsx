@@ -350,6 +350,30 @@ export default async function DashboardPage() {
             </div>
           </>
         )}
+
+        <div className="border-t pt-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-lg font-semibold">Quick Actions</h2>
+              <p className="text-sm text-muted-foreground">Get more from your learning journey</p>
+            </div>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 mt-4">
+            <Link href="/groups">
+              <Card className="cursor-pointer hover:ring-1 hover:ring-indigo-500/30 transition-all h-full">
+                <CardContent className="flex flex-col items-center justify-center gap-2 py-6 text-center">
+                  <div className="h-10 w-10 rounded-lg bg-purple-100 dark:bg-purple-900/50 flex items-center justify-center">
+                    <span className="text-lg">👥</span>
+                  </div>
+                  <div>
+                    <p className="font-medium">Study Groups</p>
+                    <p className="text-xs text-muted-foreground">Learn together</p>
+                  </div>
+                </CardContent>
+              </Card>
+            </Link>
+          </div>
+        </div>
       </div>
     </div>
   )
