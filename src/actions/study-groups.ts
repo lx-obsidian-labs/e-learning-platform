@@ -3,7 +3,12 @@
 import { createAdminClient } from "@/lib/supabase/admin"
 import { getCurrentUserWithRole } from "@/actions/auth"
 import { revalidatePath } from "next/cache"
-import { randomUUID } from "crypto"
+import { randomUUID, randomBytes } from "crypto"
+import type { GroupWithDetails, StudyGroup, GroupMember } from "@/types/study-groups"
+
+function generateInviteCode(): string {
+  return randomBytes(4).toString("hex")
+}
 
 export async function createGroup(data: {
   name: string
@@ -24,8 +29,9 @@ export async function createGroup(data: {
     description: data.description?.trim() || null,
     courseId: data.courseId || null,
     createdBy: user.id,
-    maxMembers: data.maxMembers || 10,
+    maxMembers: data.maxMembers || 20,
     isPublic: data.isPublic ?? true,
+    inviteCode: generateInviteCode(),
     updatedAt: new Date().toISOString(),
   })
 
@@ -55,6 +61,95 @@ export async function createGroup(data: {
   return { groupId }
 }
 
+export async function updateGroup(
+  groupId: string,
+  data: { name?: string; description?: string | null; maxMembers?: number; isPublic?: boolean }
+) {
+  const user = await getCurrentUserWithRole()
+  if (!user) return { error: "Not authenticated" }
+
+  const supabase = createAdminClient()
+
+  const { data: group } = await supabase
+    .from("study_groups")
+    .select('"createdBy"')
+    .eq('"id"', groupId)
+    .single()
+
+  if (!group) return { error: "Group not found" }
+  if (group.createdBy !== user.id && user.role !== "ADMIN") {
+    return { error: "Not authorized" }
+  }
+
+  const updates: Record<string, unknown> = { updatedAt: new Date().toISOString() }
+  if (data.name !== undefined) updates.name = data.name.trim()
+  if (data.description !== undefined) updates.description = data.description
+  if (data.maxMembers !== undefined) updates.maxMembers = data.maxMembers
+  if (data.isPublic !== undefined) updates.isPublic = data.isPublic
+
+  const { error } = await supabase.from("study_groups").update(updates).eq('"id"', groupId)
+
+  if (error) return { error: error.message }
+
+  await supabase.from("group_activities").insert({
+    id: randomUUID(),
+    groupId,
+    userId: user.id,
+    type: "updated",
+    message: "updated group settings",
+  })
+
+  revalidatePath(`/groups/${groupId}`)
+  return { success: true }
+}
+
+export async function generateInviteCodeAction(groupId: string) {
+  const user = await getCurrentUserWithRole()
+  if (!user) return { error: "Not authenticated" }
+
+  const supabase = createAdminClient()
+
+  const { data: group } = await supabase
+    .from("study_groups")
+    .select('"createdBy"')
+    .eq('"id"', groupId)
+    .single()
+
+  if (!group) return { error: "Group not found" }
+  if (group.createdBy !== user.id && user.role !== "ADMIN") {
+    return { error: "Not authorized" }
+  }
+
+  const code = generateInviteCode()
+
+  const { error } = await supabase
+    .from("study_groups")
+    .update({ inviteCode: code, updatedAt: new Date().toISOString() })
+    .eq('"id"', groupId)
+
+  if (error) return { error: error.message }
+
+  revalidatePath(`/groups/${groupId}`)
+  return { inviteCode: code }
+}
+
+export async function joinGroupByInviteCode(code: string) {
+  const user = await getCurrentUserWithRole()
+  if (!user) return { error: "Not authenticated" }
+
+  const supabase = createAdminClient()
+
+  const { data: group } = await supabase
+    .from("study_groups")
+    .select("*")
+    .eq('"inviteCode"', code)
+    .single()
+
+  if (!group) return { error: "Invalid invite code" }
+
+  return joinGroup(group.id)
+}
+
 export async function getMyGroups() {
   const user = await getCurrentUserWithRole()
   if (!user) return []
@@ -68,7 +163,7 @@ export async function getMyGroups() {
 
   if (!memberships || memberships.length === 0) return []
 
-  const groupIds = memberships.map((m: any) => m.groupId)
+  const groupIds = memberships.map((m) => m.groupId)
 
   const { data: groups } = await supabase
     .from("study_groups")
@@ -294,7 +389,7 @@ export async function addGroupActivity(groupId: string, type: string, message?: 
   return { success: true }
 }
 
-export async function getGroupCourses(groupId: string) {
+export async function getGroupProgress(groupId: string) {
   const supabase = createAdminClient()
 
   const { data: members } = await supabase
@@ -304,7 +399,7 @@ export async function getGroupCourses(groupId: string) {
 
   if (!members || members.length === 0) return []
 
-  const userIds = members.map((m: any) => m.userId)
+  const userIds = members.map((m) => m.userId)
 
   const { data: enrollments } = await supabase
     .from("enrollments")
@@ -314,7 +409,7 @@ export async function getGroupCourses(groupId: string) {
 
   const courseMap = new Map()
   for (const enrollment of enrollments || []) {
-    const course = enrollment.courses
+    const course = (enrollment as Record<string, unknown>).courses as Record<string, unknown> | null
     if (!course) continue
     if (!courseMap.has(course.id)) {
       courseMap.set(course.id, {

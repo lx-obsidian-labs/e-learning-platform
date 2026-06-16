@@ -6,12 +6,14 @@ CREATE TABLE IF NOT EXISTS "study_groups" (
   "createdBy" TEXT NOT NULL,
   "maxMembers" INTEGER NOT NULL DEFAULT 10,
   "isPublic" BOOLEAN NOT NULL DEFAULT true,
+  "inviteCode" TEXT NOT NULL DEFAULT '',
   "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
   "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT "study_groups_pkey" PRIMARY KEY ("id")
 );
 
 CREATE INDEX IF NOT EXISTS "study_groups_createdAt_idx" ON "study_groups"("createdAt");
+CREATE UNIQUE INDEX IF NOT EXISTS "study_groups_inviteCode_idx" ON "study_groups"("inviteCode") WHERE "inviteCode" != '';
 
 CREATE TABLE IF NOT EXISTS "group_members" (
   "id" TEXT NOT NULL,
