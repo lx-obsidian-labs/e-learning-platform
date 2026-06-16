@@ -53,12 +53,14 @@ export async function POST(req: Request) {
     if (couponCode) {
       const result = await validateCoupon(couponCode)
       if (result.valid && result.coupon) {
-        const discountType = result.coupon.discountType === "percentage" ? "percent" : "amount"
-        const promotionCode = await stripe.promotionCodes.create({
-          coupon: result.coupon.code,
-          active: true,
+        const stripeCoupon = await stripe.coupons.create({
+          name: result.coupon.code,
+          percent_off: result.coupon.discountType === "percentage" ? result.coupon.discountValue : undefined,
+          amount_off: result.coupon.discountType === "fixed" ? Math.round(result.coupon.discountValue * 100) : undefined,
+          currency: result.coupon.discountType === "fixed" ? "usd" : undefined,
+          duration: "once",
         })
-        sessionParams.discounts = [{ promotion_code: promotionCode.id }]
+        sessionParams.discounts = [{ coupon: stripeCoupon.id }]
         sessionParams.metadata.couponId = result.coupon.id
       }
     }
