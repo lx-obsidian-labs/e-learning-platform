@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { StatCard } from "@/components/dashboard/stat-card"
 import { ProgressCard } from "@/components/dashboard/progress-card"
-import { BookOpen, Clock, CheckCircle, TrendingUp, ArrowRight, Award, Brain } from "lucide-react"
+import { BookOpen, Clock, CheckCircle, TrendingUp, ArrowRight, Award, Brain, BarChart3 } from "lucide-react"
 import { getRecommendationsForUser, getInsightsForUser } from "@/lib/recommendations"
 import { AiInsights } from "@/components/ai-insights"
 import { getMyStats } from "@/actions/gamification"
@@ -368,6 +368,19 @@ export default async function DashboardPage() {
                   <div>
                     <p className="font-medium">Study Groups</p>
                     <p className="text-xs text-muted-foreground">Learn together</p>
+                  </div>
+                </CardContent>
+              </Card>
+            </Link>
+            <Link href="/analytics">
+              <Card className="cursor-pointer hover:ring-1 hover:ring-indigo-500/30 transition-all h-full">
+                <CardContent className="flex flex-col items-center justify-center gap-2 py-6 text-center">
+                  <div className="h-10 w-10 rounded-lg bg-indigo-100 dark:bg-indigo-900/50 flex items-center justify-center">
+                    <BarChart3 className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
+                  </div>
+                  <div>
+                    <p className="font-medium">Analytics</p>
+                    <p className="text-xs text-muted-foreground">View your stats</p>
                   </div>
                 </CardContent>
               </Card>
