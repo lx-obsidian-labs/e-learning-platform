@@ -9,6 +9,7 @@ import { createAdminClient } from "@/lib/supabase/admin"
 import { validateEnv } from "@/lib/env"
 import { FloatingAiAssistant } from "@/components/floating-ai-assistant"
 import { PwaPrompt } from "@/components/pwa-prompt"
+import { NotificationPermissionBanner } from "@/components/notification-permission-banner"
 
 validateEnv()
 
@@ -88,6 +89,7 @@ export default async function RootLayout({
             <Footer />
             <FloatingAiAssistant />
             <PwaPrompt />
+            <NotificationPermissionBanner />
           </div>
         </Providers>
         <script

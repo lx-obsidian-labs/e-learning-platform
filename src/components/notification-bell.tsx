@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState, useCallback } from "react"
+import { useEffect, useState, useCallback, useRef } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import {
@@ -13,20 +13,30 @@ import {
 import { getUnreadCount, getNotifications, markAsRead, markAllAsRead } from "@/actions/notifications"
 import type { Notification } from "@/types/notifications"
 import { Bell } from "lucide-react"
+import { useBrowserNotification } from "@/hooks/use-browser-notification"
 
 export function NotificationBell() {
   const [unread, setUnread] = useState(0)
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [open, setOpen] = useState(false)
+  const { showNotification } = useBrowserNotification()
+  const lastUnreadRef = useRef(0)
 
   const refresh = useCallback(async () => {
     const [count, items] = await Promise.all([
       getUnreadCount(),
       getNotifications(),
     ])
+
+    if (count > lastUnreadRef.current && items.length > 0) {
+      const latest = items[0]
+      showNotification(latest.title, { body: latest.message })
+    }
+    lastUnreadRef.current = count
+
     setUnread(count)
     setNotifications(items)
-  }, [])
+  }, [showNotification])
 
   useEffect(() => {
     refresh()

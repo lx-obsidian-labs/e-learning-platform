@@ -59,3 +59,31 @@ self.addEventListener('fetch', (event) => {
       })
   )
 })
+
+// Push event handler (for future web push integration)
+self.addEventListener('push', (event) => {
+  if (!event.data) return
+  try {
+    const data = event.data.json()
+    event.waitUntil(
+      self.registration.showNotification(data.title || 'Edu Learn', {
+        body: data.message || '',
+        icon: '/icons/icon-192.svg',
+        badge: '/icons/icon-192.svg',
+        data: data.url ? { url: data.url } : undefined,
+      })
+    )
+  } catch {
+    // ignore malformed push
+  }
+})
+
+// Notification click handler
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close()
+  if (event.notification.data?.url) {
+    event.waitUntil(clients.openWindow(event.notification.data.url))
+  } else {
+    event.waitUntil(clients.openWindow('/'))
+  }
+})
