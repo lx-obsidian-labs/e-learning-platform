@@ -8,6 +8,7 @@ import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { validateEnv } from "@/lib/env"
 import { FloatingAiAssistant } from "@/components/floating-ai-assistant"
+import { PwaPrompt } from "@/components/pwa-prompt"
 
 validateEnv()
 
@@ -33,6 +34,13 @@ export const metadata: Metadata = {
   icons: {
     icon: '/favicon.svg',
     shortcut: '/favicon.svg',
+    apple: '/icons/icon-192.svg',
+  },
+  manifest: '/manifest.json',
+  other: {
+    'theme-color': '#6366f1',
+    'apple-mobile-web-app-capable': 'yes',
+    'apple-mobile-web-app-status-bar-style': 'default',
   },
 }
 
@@ -79,8 +87,20 @@ export default async function RootLayout({
             <main>{children}</main>
             <Footer />
             <FloatingAiAssistant />
+            <PwaPrompt />
           </div>
         </Providers>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              if ('serviceWorker' in navigator) {
+                window.addEventListener('load', () => {
+                  navigator.serviceWorker.register('/sw.js');
+                });
+              }
+            `,
+          }}
+        />
       </body>
     </html>
   )
