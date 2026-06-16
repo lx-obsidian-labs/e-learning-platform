@@ -7,10 +7,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { StatCard } from "@/components/dashboard/stat-card"
 import { ProgressCard } from "@/components/dashboard/progress-card"
-import { BookOpen, Clock, CheckCircle, TrendingUp, ArrowRight, Award } from "lucide-react"
+import { BookOpen, Clock, CheckCircle, TrendingUp, ArrowRight, Award, Brain } from "lucide-react"
 import { getRecommendationsForUser, getInsightsForUser } from "@/lib/recommendations"
 import { AiInsights } from "@/components/ai-insights"
 import { getMyStats } from "@/actions/gamification"
+import { getReviewStats } from "@/actions/spaced-repetition"
 
 export const dynamic = "force-dynamic"
 
@@ -90,6 +91,9 @@ export default async function DashboardPage() {
   // Get gamification stats
   const stats = await getMyStats()
 
+  // Get spaced repetition stats
+  const reviewStats = await getReviewStats()
+
   // Get AI recommendations (best-effort)
   let recommendations: any[] = []
   try {
@@ -126,7 +130,7 @@ export default async function DashboardPage() {
           </Button>
         </div>
 
-        <div className="grid gap-4 grid-cols-2 lg:grid-cols-5">
+        <div className="grid gap-4 grid-cols-2 lg:grid-cols-6">
           <StatCard
             title="Enrolled"
             value={validEnrollments.length}
@@ -178,6 +182,24 @@ export default async function DashboardPage() {
               </CardContent>
             </Card>
           )}
+          <Link href="/review">
+            <Card className="border-l-indigo-500 cursor-pointer hover:ring-1 hover:ring-indigo-500/30 transition-all">
+              <CardContent className="p-4 space-y-1">
+                <div className="flex items-center gap-2">
+                  <div className="h-8 w-8 rounded-lg bg-indigo-100 dark:bg-indigo-900/50 flex items-center justify-center">
+                    <Brain className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Reviews Due</p>
+                    <p className="text-lg font-bold">{reviewStats.totalDue}</p>
+                  </div>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {reviewStats.totalCompleted} completed &middot; {reviewStats.streak} day streak
+                </p>
+              </CardContent>
+            </Card>
+          </Link>
         </div>
 
         {validEnrollments.length === 0 ? (

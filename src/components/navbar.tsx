@@ -173,6 +173,9 @@ export function Navbar({ initialUser }: { initialUser?: NavbarUser | null }) {
                 <DropdownMenuItem asChild>
                   <Link href="/dashboard" className="cursor-pointer">Dashboard</Link>
                 </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/review" className="cursor-pointer">Reviews</Link>
+                </DropdownMenuItem>
                 {user.role === "INSTRUCTOR" && (
                   <DropdownMenuItem asChild>
                     <Link href="/instructor" className="cursor-pointer">Instructor Panel</Link>
