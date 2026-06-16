@@ -366,3 +366,135 @@ export async function getPublishedCourses(params?: {
 
   return filtered
 }
+
+type AILessonInput = {
+  title: string
+  description: string
+  duration: number
+  content: string | null
+  quiz?: {
+    moduleIndex: number
+    lessonIndex: number
+    questions: { text: string; type: string; points: number; options: { text: string; isCorrect: boolean }[] }[]
+  }
+}
+
+export async function createCourseFromAI(data: {
+  title: string
+  description: string
+  modules: { title: string; description: string; lessons: AILessonInput[] }[]
+}) {
+  const user = await getCurrentUserWithRole()
+  if (!user || user.role === "STUDENT") {
+    return { error: "Unauthorized" }
+  }
+
+  const supabase = createAdminClient()
+
+  try {
+    const slug = data.title
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/(^-|-$)/g, "")
+
+    const { data: course, error: courseError } = await supabase
+      .from("courses")
+      .insert({
+        id: randomUUID(),
+        title: data.title,
+        slug,
+        description: data.description || null,
+        price: 0,
+        isFree: true,
+        status: "DRAFT",
+        instructorId: user.id,
+      })
+      .select("*")
+      .single()
+
+    if (courseError || !course) return { error: "Failed to create course" }
+
+    for (let mi = 0; mi < data.modules.length; mi++) {
+      const mod = data.modules[mi]
+
+      const { data: module, error: moduleError } = await supabase
+        .from("modules")
+        .insert({
+          id: randomUUID(),
+          title: mod.title,
+          description: mod.description || null,
+          order: mi + 1,
+          courseId: course.id,
+        })
+        .select("*")
+        .single()
+
+      if (moduleError) continue
+
+      for (let li = 0; li < mod.lessons.length; li++) {
+        const lesson = mod.lessons[li]
+
+        const { error: lessonError } = await supabase
+          .from("lessons")
+          .insert({
+            id: randomUUID(),
+            title: lesson.title,
+            description: lesson.description || null,
+            content: lesson.content || null,
+            duration: lesson.duration || null,
+            isPreviewable: false,
+            order: li + 1,
+            moduleId: module.id,
+          })
+
+        if (lessonError) continue
+
+        if (lesson.quiz?.questions && lesson.quiz.questions.length > 0) {
+          const { data: quiz, error: quizError } = await supabase
+            .from("quizzes")
+            .insert({
+              id: randomUUID(),
+              title: `${lesson.title} Quiz`,
+              description: null,
+              passingScore: 50,
+              moduleId: module.id,
+            })
+            .select("*")
+            .single()
+
+          if (quizError || !quiz) continue
+
+          for (const question of lesson.quiz.questions) {
+            const { data: questionData, error: qError } = await supabase
+              .from("quiz_questions")
+              .insert({
+                id: randomUUID(),
+                text: question.text,
+                type: question.type,
+                points: question.points,
+                quizId: quiz.id,
+              })
+              .select("*")
+              .single()
+
+            if (qError || !questionData) continue
+
+            for (const option of question.options) {
+              await supabase.from("quiz_answer_options").insert({
+                id: randomUUID(),
+                text: option.text,
+                isCorrect: option.isCorrect,
+                questionId: questionData.id,
+              })
+            }
+          }
+        }
+      }
+    }
+
+    revalidatePath("/instructor/courses")
+    return { courseId: course.id, slug }
+  } catch {
+    return { error: "Failed to create course from AI" }
+  }
+}

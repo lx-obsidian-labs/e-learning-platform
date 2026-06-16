@@ -3,10 +3,12 @@ import { createAdminClient } from "@/lib/supabase/admin"
 import { redirect } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
+import { Sparkles } from "lucide-react"
 
 const navItems = [
   { label: "Overview", href: "/instructor" },
   { label: "My Courses", href: "/instructor/courses" },
+  { label: "AI Course Generator", href: "/instructor/ai-generator" },
   { label: "Import Courses", href: "/instructor/import" },
 ]
 
@@ -43,7 +45,12 @@ export default async function InstructorLayout({
             className="justify-start"
             asChild
           >
-            <Link href={item.href}>{item.label}</Link>
+            <Link href={item.href}>
+              {item.label === "AI Course Generator" && (
+                <Sparkles className="h-4 w-4 mr-2 text-amber-500" />
+              )}
+              {item.label}
+            </Link>
           </Button>
         ))}
       </aside>
