@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { CompleteButton } from "./complete-button"
 import { AiTutor } from "@/components/ai-tutor"
+import { AiVideoCoach } from "@/components/ai-video-coach"
 import { LessonDiscussions } from "@/components/lesson-discussions"
 import Link from "next/link"
 
@@ -147,16 +148,30 @@ export default async function LessonPage({
               <div className="absolute bottom-3 left-3 bg-black/60 text-white text-xs px-2 py-1 rounded backdrop-blur-sm">
                 {lesson.duration || ""} min
               </div>
+              <AiVideoCoach
+                lessonId={lessonId}
+                lessonTitle={lesson.title}
+                lessonContent={lesson.content}
+                videoUrl={lesson.videoUrl}
+                videoTitle={lesson.title}
+              />
             </div>
           )}
 
           {rawVideoUrl && (
-            <div className="aspect-video rounded-xl bg-black overflow-hidden shadow-lg relative">
+            <div className="aspect-video rounded-xl bg-black overflow-hidden shadow-lg relative group">
               <video
                 src={rawVideoUrl}
                 controls
                 className="w-full h-full object-contain"
                 poster={videoThumbnail || undefined}
+              />
+              <AiVideoCoach
+                lessonId={lessonId}
+                lessonTitle={lesson.title}
+                lessonContent={lesson.content}
+                videoUrl={lesson.videoUrl}
+                videoTitle={lesson.title}
               />
             </div>
           )}
