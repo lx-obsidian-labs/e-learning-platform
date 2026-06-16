@@ -91,13 +91,6 @@ export default async function EbooksPage({ searchParams }: Props) {
                           <BookOpen className="h-12 w-12 text-muted-foreground/30" />
                         </div>
                       )}
-                      {ebook.featured && (
-                        <div className="absolute top-2 right-2">
-                          <Badge className="bg-amber-500 hover:bg-amber-600 text-white border-0 text-[10px]">
-                            Featured
-                          </Badge>
-                        </div>
-                      )}
                     </div>
                     <CardContent className="p-4 space-y-2">
                       <h3 className="font-semibold text-sm leading-snug line-clamp-2 group-hover:text-primary transition-colors">

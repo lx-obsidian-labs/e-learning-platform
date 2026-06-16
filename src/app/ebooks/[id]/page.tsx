@@ -54,7 +54,7 @@ export default async function EbookPage({ params }: Props) {
 
             {ebook.source && (
               <p className="text-[10px] text-muted-foreground/60 text-center">
-                Source: {ebook.source === "gutenberg" ? "Project Gutenberg" : "Open Library"}
+                Source: {ebook.sourceName}
               </p>
             )}
           </div>
@@ -63,7 +63,6 @@ export default async function EbookPage({ params }: Props) {
             <div>
               <div className="flex items-center gap-2 mb-2">
                 {ebook.category && <Badge variant="secondary">{ebook.category}</Badge>}
-                {ebook.featured && <Badge className="bg-amber-500 text-white border-0">Featured</Badge>}
                 {ebook.pages && (
                   <span className="text-xs text-muted-foreground">{ebook.pages} pages</span>
                 )}
@@ -107,7 +106,7 @@ export default async function EbookPage({ params }: Props) {
                   </div>
                   <div>
                     <p className="text-muted-foreground text-xs">Source</p>
-                    <p className="font-medium capitalize">{ebook.source === "gutenberg" ? "Project Gutenberg" : "Open Library"}</p>
+                    <p className="font-medium">{ebook.sourceName}</p>
                   </div>
                 </div>
               </CardContent>
