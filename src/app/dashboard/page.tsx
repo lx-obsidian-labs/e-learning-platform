@@ -372,6 +372,19 @@ export default async function DashboardPage() {
                 </CardContent>
               </Card>
             </Link>
+            <Link href="/certificates">
+              <Card className="cursor-pointer hover:ring-1 hover:ring-indigo-500/30 transition-all h-full">
+                <CardContent className="flex flex-col items-center justify-center gap-2 py-6 text-center">
+                  <div className="h-10 w-10 rounded-lg bg-amber-100 dark:bg-amber-900/50 flex items-center justify-center">
+                    <Award className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+                  </div>
+                  <div>
+                    <p className="font-medium">My Certificates</p>
+                    <p className="text-xs text-muted-foreground">View credentials</p>
+                  </div>
+                </CardContent>
+              </Card>
+            </Link>
             <Link href="/analytics">
               <Card className="cursor-pointer hover:ring-1 hover:ring-indigo-500/30 transition-all h-full">
                 <CardContent className="flex flex-col items-center justify-center gap-2 py-6 text-center">
