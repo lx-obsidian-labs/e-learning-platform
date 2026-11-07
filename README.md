@@ -1,3 +1,25 @@
+# Edu Learn — Engineering Documentation
+
+**LX Obsidian Labs | Next.js education platform**
+
+> **Documentation verification notice (2026-11-07):** This README contains a detailed product and feature specification. Individual claims below have **not** all been verified against executed tests, live deployments or integration results. Treat the feature list as documented product scope until the corresponding code paths and acceptance tests are confirmed. The root manifest declares `npm run test`, `npm run test:coverage`, `npm run lint` and `npm run build`; their passing outcomes have not been established in this review.
+
+## Quick navigation
+
+- [Documentation and verification guide](DOCUMENTATION_VERIFICATION.md)
+- [Engineering evidence register](https://github.com/lx-obsidian-labs/lx-obsidian-labs/blob/main/ENGINEERING_EVIDENCE_REGISTER.md)
+- [Portfolio documentation standard](https://github.com/lx-obsidian-labs/lx-obsidian-labs/blob/main/DOCUMENTATION_QUALITY_STANDARD.md)
+
+## Terminology and verification boundaries
+
+- A **SHA-256 certificate hash and verification page** do not, by themselves, establish blockchain anchoring or independent blockchain verification. Verify an actual chain transaction, contract and independent validation before using the phrase *blockchain-verified* in commercial claims.
+- Accessibility conformance, offline behavior, translation completeness, payment workflows and AI accuracy require separate tests.
+- A listed dependency or API route does not establish a functioning third-party integration.
+- Any claims of zero-configuration deployment must be tested with required environment configuration.
+
+---
+
+## Detailed product documentation
 
 ₿─── Edu Learn ──────────────────────────────────────────────────────────────
 
