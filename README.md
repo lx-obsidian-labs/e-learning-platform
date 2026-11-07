@@ -2,6 +2,8 @@
 
 **LX Obsidian Labs | Next.js education platform**
 
+**CI blocker (2026-11-07):** [Test learning platform run 42396935182](https://github.com/lx-obsidian-labs/e-learning-platform/actions/runs/42396935182) failed at **Install locked dependencies** on commit `467720ab2386a2a0feffb00ed32bcb9deebcbe6f`. This must be fixed before describing CI as passing.
+
 > **Documentation verification notice (2026-11-07):** This README contains a detailed product and feature specification. Individual claims below have **not** all been verified against executed tests, live deployments or integration results. Treat the feature list as documented product scope until the corresponding code paths and acceptance tests are confirmed. The root manifest declares `npm run test`, `npm run test:coverage`, `npm run lint` and `npm run build`; their passing outcomes have not been established in this review.
 
 ## Quick navigation
